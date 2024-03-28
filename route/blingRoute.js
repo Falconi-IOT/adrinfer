@@ -8,7 +8,7 @@ const variaveis = require('../global/variaveis')
 
 const qs = require('querystring');
 const router = express.Router();
-
+//lixo
 
 router.get('/api/bling/recebercode/:id_empresa', async function(req, res) {
 
