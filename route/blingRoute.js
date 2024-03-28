@@ -22,14 +22,14 @@ router.get("/api/bling/recebercode/:id_empresa", async function(req, res) {
         try {
             try {
                 emp = await empresaSrv.getEmpresa(id_empresa);
+
+                emp.code = req.query.code.trim();
             } catch (error) {
                 throw error;
             }
-
+            console.log("Emp.: ", emp);
             try {
                 const token = await blingSrv.getToken(emp);
-
-                emp.code = req.query.code.trim();
 
                 emp.access_token = token.access_token;
 
@@ -40,8 +40,22 @@ router.get("/api/bling/recebercode/:id_empresa", async function(req, res) {
                 console.log(empAlterada);
 
                 res.status(200).json(req.query.code);
-            } catch (err) {
-                res.status(200).json({ message: "Falha Na Atualização da Empresa" });
+            } catch (error) {
+                if (error.response) {
+                    console.log(error.response.data);
+                    console.log(error.response.status);
+                    res.status(200).json({ message: error.response.data });
+                } else {
+                    if (error.name == "MyExceptionDB") {
+                        res.status(409).json(error);
+                    } else {
+                        res.status(500).json({
+                            erro: "BAK-END",
+                            tabela: "Empresa",
+                            message: error.message,
+                        });
+                    }
+                }
             }
         } catch (error) {
             if (error.response) {
@@ -49,7 +63,15 @@ router.get("/api/bling/recebercode/:id_empresa", async function(req, res) {
                 console.log(error.response.status);
                 res.status(200).json({ message: error.response.data });
             } else {
-                res.status(200).json({ message: error });
+                if (error.name == "MyExceptionDB") {
+                    res.status(409).json(error);
+                } else {
+                    res.status(500).json({
+                        erro: "BAK-END",
+                        tabela: "Empresa",
+                        message: error.message,
+                    });
+                }
             }
         }
     } else {
@@ -208,27 +230,32 @@ router.get("/api/bling/getprodutoSimplebyids", async function(req, resp) {
     }
 });
 
-router.get("/api/bling/sincronizarsaldo", async function(req, resp) {
+router.get("/api/bling/sincronizarsaldo", async function(req, res) {
     let idsProdutos = [];
     let codigoProdutos = [];
     let contador = 0;
+    let emp = {};
     try {
-        //console.log("BUSCAR LISTWORK");
-        const listaWork = await blingSrv.getListaWork();
+        try {
+            emp = await empresaSrv.getEmpresa(1);
+        } catch (error) {
+            throw error;
+        }
+        console.log("BUSCAR LISTWORK");
+        const listaWork = await blingSrv.getListaWork(emp);
         listaWork.forEach((produto) => {
             idsProdutos.push(produto.id);
             codigoProdutos.push({ codigo: produto.codigo });
         });
-        //console.log("", idsProdutos);
-        //console.log("", idsProdutos);
-        //console.log("BUSCAR SALDOS BLING");
-        const saldosBling = await blingSrv.getSaldos(idsProdutos);
-        //console.log(saldosBling);
-        //console.log("BUSCAR SALDOS CHG");
-        //console.log(codigoProdutos)
+        console.log("", idsProdutos);
+        console.log("BUSCAR SALDOS BLING");
+        const saldosBling = await blingSrv.getSaldos(idsProdutos, emp);
+        console.log(saldosBling);
+        console.log("BUSCAR SALDOS CHG");
+        console.log(codigoProdutos);
         saldosCHG = await chgSrv.getProdutoByCodigoArray(codigoProdutos);
-        //console.log("SALDOS CHG ENCONTRADOS!");
-        //console.log(saldosCHG)
+        console.log("SALDOS CHG ENCONTRADOS!");
+        console.log(saldosCHG);
         listaWork.forEach((item) => {
             //console.log("item", item);
             var bling = saldosBling.filter((x) => x.produto.id === item.id);
@@ -240,19 +267,29 @@ router.get("/api/bling/sincronizarsaldo", async function(req, resp) {
             var chg = saldosCHG.filter((x) => x.codigo === item.codigo);
             if (chg) {
                 //console.log("chg", chg);
-                item.saldo_chg = chg[0].estoque;
+                if (typeof chg[0].estoque !== "undefined") {
+                    item.saldo_chg = chg[0].estoque;
+                }
             }
         });
+        console.log("RESULTADOS");
         for (const [index, dado] of listaWork.entries()) {
             if (dado.saldo_bling != dado.saldo_chg) {
-                //console.log("Produto - ", dado.id, dado.codigo, dado.nome, dado.saldo_bling, dado.saldo_chg);
-                await blingSrv.postAjustaSaldo(
-                    dado.id_deposito,
+                console.log(
+                    "Produto - ",
                     dado.id,
-                    dado.saldo_chg,
-                    dado.preco,
-                    "AJUSTE AUTOMÁTICO CHG"
+                    dado.codigo,
+                    dado.nome,
+                    dado.saldo_bling,
+                    dado.saldo_chg
                 );
+                /* await blingSrv.postAjustaSaldo(
+                                                                                                    dado.id_deposito,
+                                                                                                    dado.id,
+                                                                                                    dado.saldo_chg,
+                                                                                                    dado.preco,
+                                                                                                    "AJUSTE AUTOMÁTICO CHG"
+                                                                                                );*/
                 contador++;
             }
         }
@@ -262,9 +299,22 @@ router.get("/api/bling/sincronizarsaldo", async function(req, resp) {
         : contador.toString() + " PRODUTOS AJUSTADOS!"
     }`;
         resp.status(200).json({ message: men });
-    } catch (err) {
-        console.log(err);
-        resp.status(200).json(err);
+    } catch (error) {
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            res.status(200).json({ message: error.response.data });
+        } else {
+            if (error.name == "MyExceptionDB") {
+                res.status(409).json(error);
+            } else {
+                res.status(500).json({
+                    erro: "BAK-END",
+                    tabela: "Empresa",
+                    message: error.message,
+                });
+            }
+        }
     }
 });
 
