@@ -9,7 +9,7 @@ const variaveis = require('../global/variaveis')
 const qs = require('querystring');
 const router = express.Router();
 
-/// teste
+//mamamamam
 
 router.get('/api/bling/recebercode/:id_empresa', async function(req, res) {
 
@@ -23,49 +23,49 @@ router.get('/api/bling/recebercode/:id_empresa', async function(req, res) {
 
         try {
             const emp = await empresaSrv.getEmpresa(id_empresa);
-            except(error) {
-                throw error
-            }
-
-            emp.code = req.query.code;
-
-            try {
-
-                const token = await blingSrv.getToken(emp);
-
-                mp.code = req.query.code;
-
-                emp.access_token = token.access_token;
-
-                emp.refresh_token = token.refresh_token;
-
-                const empAlterada = await empresaSrv.updateEmpresa(emp);
-
-                console.log(empAlterada);
-
-                res.status(200).json(req.query.code);
-
-            } catch (err) {
-
-                res.status(200).json({ "message": "Falha Na Atualização da Empresa" });
-
-            }
-
         } catch (error) {
-
-            if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                res.status(200).json({ message: error.response.data });
-            } else {
-                res.status(200).json({ message: error });
-            }
+            throw error
         }
 
+        emp.code = req.query.code;
 
-    } else {
-        res.status(200).json({ "message": "Não Recebi O Código!" });
+        try {
+
+            const token = await blingSrv.getToken(emp);
+
+            mp.code = req.query.code;
+
+            emp.access_token = token.access_token;
+
+            emp.refresh_token = token.refresh_token;
+
+            const empAlterada = await empresaSrv.updateEmpresa(emp);
+
+            console.log(empAlterada);
+
+            res.status(200).json(req.query.code);
+
+        } catch (err) {
+
+            res.status(200).json({ "message": "Falha Na Atualização da Empresa" });
+
+        }
+
+    } catch (error) {
+
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            res.status(200).json({ message: error.response.data });
+        } else {
+            res.status(200).json({ message: error });
+        }
     }
+
+
+} else {
+    res.status(200).json({ "message": "Não Recebi O Código!" });
+}
 
 
 })
