@@ -18,8 +18,10 @@ router.get('/api/bling/recebercode/:id_empresa', async function(req, res) {
 
     console.log(`ENTREI Na recebercode ==> ${id_empresa} code: " ${req.query.code}`);
 
-    if (req.query.code) {
-
+    if (req.query.code) 
+    {
+        try 
+        {
         try {
             const emp = await empresaSrv.getEmpresa(id_empresa);
         } catch (error) {
@@ -49,7 +51,6 @@ router.get('/api/bling/recebercode/:id_empresa', async function(req, res) {
             res.status(200).json({ "message": "Falha Na Atualização da Empresa" });
 
         }
-
     } catch (error) {
 
         if (error.response) {
@@ -59,10 +60,9 @@ router.get('/api/bling/recebercode/:id_empresa', async function(req, res) {
         } else {
             res.status(200).json({ message: error });
         }
-    }
-
-
-} else {
+        }
+    } 
+else {
     res.status(200).json({ "message": "Não Recebi O Código!" });
 }
 
