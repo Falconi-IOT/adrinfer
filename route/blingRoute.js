@@ -3,7 +3,7 @@ const empresaSrv = require('../service/empresaService');
 const axios = require('axios')
 const blingSrv = require('../service/blingService.js');
 const chgSrv = require('../service/chgService.js');
-
+const getCredentials = require('../util/credentials.js');
 const variaveis = require('../global/variaveis')
 
 const qs = require('querystring');
@@ -20,47 +20,27 @@ router.get('/api/bling/recebercode/:id_empresa', async function(req, res) {
 
     if (req.query.code) {
 
-        variaveis.setCode(req.query.code);
-
         try {
-
-            const token = await blingSrv.getToken();
-
-            variaveis.setAcessToken(token.access_token);
-
-            variaveis.setRefreshToken(token.refresh_token);
-
-            /*
-            try {
-
-                //const categorias = await blingSrv.getCategorias();
-
-                //console.log("categorias", categorias);
-
-            } catch (error) {
-
-                console.log(error.response.data);
-                console.log(error.response.status);
+            const emp = await empresaSrv.getEmpresa(id_empresa);
+            except(error) {
+                throw error
             }
 
-            */
+            emp.code = req.query.code;
 
             try {
 
-                const emp = await empresaSrv.getEmpresa(id_empresa);
+                const token = await blingSrv.getToken(emp);
 
-                emp.code = req.query.code;
+                mp.code = req.query.code;
+
                 emp.access_token = token.access_token;
+
                 emp.refresh_token = token.refresh_token;
 
                 const empAlterada = await empresaSrv.updateEmpresa(emp);
 
                 console.log(empAlterada);
-
-
-                //const depositos = await blingSrv.getDepositos();
-
-                //console.log("depositos", depositos);
 
                 res.status(200).json(req.query.code);
 
@@ -76,6 +56,8 @@ router.get('/api/bling/recebercode/:id_empresa', async function(req, res) {
                 console.log(error.response.data);
                 console.log(error.response.status);
                 res.status(200).json({ message: error.response.data });
+            } else {
+                res.status(200).json({ message: error });
             }
         }
 
@@ -94,9 +76,25 @@ router.get('/api/bling/token', async function(req, response) {
 
         const retorno = await blingSrv.getToken();
 
-        variaveis.setAcessToken(retorno.access_token);
+        response.status(200).json(retorno);
 
-        variaveis.setRefreshToken(retorno.refresh_token);
+    } catch (error) {
+
+        if (error.response) {
+            console.log(error.response.data);
+            console.log(error.response.status);
+            response.status(200).json({ message: error.response.status });
+        }
+    }
+
+})
+
+
+router.get('/api/bling/refreshtoken', async function(req, response) {
+
+    try {
+
+        const retorno = await blingSrv.getRefreshToken(emp);
 
         response.status(200).json(retorno);
 
@@ -110,61 +108,6 @@ router.get('/api/bling/token', async function(req, response) {
     }
 
 
-    /*
-        axios(options).then(function(res) {
-            console.log(res);
-            const retorno = res.data;
-            variaveis.setAcessToken(retorno.access_token);
-            variaveis.setRefreshToken(retorno.refresh_token)
-            response.status(200).json(retorno);
-        }).catch(function(error) {
-            let status = 200;
-            if (error.response) {
-                console.log(error.response.data);
-                console.log(error.response.status);
-                response.status(200).json({ message: error.response.status });
-            }
-        });
-        */
-})
-
-
-router.get('/api/bling/refreshtoken', function(req, response) {
-
-    const clientId = "ad4ef071ff95286ac58508d99f21c195266fab6a";
-    const secretClient = "137452b9150016a50c705116480a86982056c287d50b0909f60378e82aa0";
-    const chave = clientId + ":" + secretClient;
-    const credentials = clientId + ":" + secretClient;
-    let buff = Buffer.from(chave);
-    const credBase64 = buff.toString('base64')
-    console.log(`credencial ${chave}`)
-    console.log(`credential base64  ${credBase64}`)
-    const data = {
-        'grant_type': 'refresh_token',
-        'refresh_token': variaveis.getRefreshToken()
-    };
-    const options = {
-        url: 'https://www.bling.com.br/Api/v3/oauth/token',
-        method: 'POST',
-        headers: {
-            'content-type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${credBase64}`,
-            'Accept': '1.0',
-        },
-        data: qs.stringify(data),
-    }
-
-    axios(options).then(function(res) {
-        console.log(res);
-        const retorno = res.data.data
-        variaveis.setAcessToken = retorno.access_token
-        variaveis.setRefreshToken = retorno.refresh_token
-        response.status(200).json(retorno);
-    }).catch(function(err) {
-        console.log("error = " + err);
-        const retorno = { message: err.message };
-        response.status(200).json(retorno);
-    });
 
 
 })

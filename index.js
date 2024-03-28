@@ -5,8 +5,11 @@ https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-lo
 
 */
 const express = require('express');
-const bling = require('./util/bling,js')
-const axios = require('axios')
+const bling = require('./util/bling,js');
+const axios = require('axios');
+const empresaSrv = require('./service/empresaService');
+const variaveis = require('./global/variaveis');
+const getCredentials = require('./util/credentials.js');
 
 const chgSrv = require('./service/chgService.js');
 
@@ -56,20 +59,10 @@ const getCatalogo = async function(pagina) {
     return;
 }
 
-const getSeteExemplos = async function() {
+const verficaCHG = async function() {
 
     const produtos = [
-        { codigo: '0212234' }, { codigo: '1110784' },
-        { codigo: '1805116' }, { codigo: '0212182' },
-        { codigo: '0212225' }, { codigo: '0846398' },
-        { codigo: '0661031' }, { codigo: '1132762' },
-        { codigo: '0555980' }, { codigo: '1410065' },
-        { codigo: '1207028' }, { codigo: '0548110' },
-        { codigo: '0190700' }, { codigo: '0037597' },
-        { codigo: '1189499' }, { codigo: '1207657' },
-        { codigo: '1751034' }, { codigo: '0081114' },
-        { codigo: '0533823' }, { codigo: '0906154' },
-        { codigo: '0218223' }, { codigo: '1386530' }
+        { codigo: '0212234' }
     ];
 
     for (const [index, dado] of produtos.entries()) {
@@ -90,17 +83,26 @@ const chama50Paginas = async function() {
 }
 
 
-const refreshToken = async function() {
-    await bling.getAtualizaToken(1);
+const refreshToken = async function(emp) {
+    await bling.getAtualizaToken(emp);
     return;
 }
 
 const iniciar = async function() {
 
+    let emp = {};
 
     try {
-        await getSeteExemplos();
-        await refreshToken();
+
+        emp = await empresaSrv.getEmpresa(1);
+
+    } catch (error) {
+
+        throw error
+    }
+    try {
+        await verficaCHG();
+        await refreshToken(emp);
     } catch (error) {
         if (error.response) {
             console.log(error.response.data);
@@ -125,9 +127,10 @@ app.use('/', require('./route/empresaRoute.js'));
 app.use('/', require('./route/tarefaRoute.js'));
 app.use('/', require('./route/usuarioRoute.js'));
 
+
+iniciar();
+
 app.listen(PORT, () => { console.log(`Servidor No Ar. Porta ${PORT}`); });
 
 
 //chama50Paginas()
-
-iniciar();

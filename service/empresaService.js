@@ -78,7 +78,7 @@ exports.ComplementarEmpresa = async function(id_empresa) {
     try {
 
 
-        depositos = await blingSrv.getDepositos();
+        depositos = await blingSrv.getDepositos(emp);
 
     } catch (error) {
 
@@ -101,7 +101,7 @@ exports.ComplementarEmpresa = async function(id_empresa) {
 
     try {
 
-        categorias = await blingSrv.getCategorias();
+        categorias = await blingSrv.getCategorias(emp);
 
     } catch (error) {
 

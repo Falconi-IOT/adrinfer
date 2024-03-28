@@ -1,5 +1,6 @@
 const axios = require('axios')
 const variaveis = require('../global/variaveis')
+const credentials = require('../util/credentials.js');
 const qs = require('querystring');
 //const ACESSTOKEN = "824066939464910bcb89eee3bd77ace9e17aaf5e"
 //const ACESSTOKEN = "b878e80a59a823c2339cff192ca67888070813e8"
@@ -7,18 +8,18 @@ const qs = require('querystring');
 //const ID_CATEGORIA = 9260994
 
 
-exports.getToken = async function() {
+exports.getToken = async function(emp) {
 
     const data = {
         'grant_type': 'authorization_code',
-        'code': variaveis.getCode()
+        'code': emp.code
     };
     const options = {
         url: 'https://www.bling.com.br/Api/v3/oauth/token',
         method: 'POST',
         headers: {
             'content-type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${variaveis.getCredentialsBase64(1)}`,
+            'Authorization': `Basic ${credentials.getCredentialsBase64(emp)}`,
             'Accept': '1.0',
         },
         data: qs.stringify(data),
@@ -40,19 +41,18 @@ exports.getToken = async function() {
 
 }
 
-exports.getRefreshToken = async function() {
+exports.getRefreshToken = async function(emp) {
 
-    //console.log("getRefreshToken", variaveis.getRefreshToken());
     const data = {
         'grant_type': 'refresh_token',
-        'refresh_token': variaveis.getRefreshToken()
+        'refresh_token': emp.refresh_token.trim()
     };
     const options = {
         url: 'https://www.bling.com.br/Api/v3/oauth/token',
         method: 'POST',
         headers: {
             'content-type': 'application/x-www-form-urlencoded',
-            'Authorization': `Basic ${variaveis.getCredentialsBase64(1)}`,
+            'Authorization': `Basic ${credentials.getCredentialsBase64(emp)}`,
             'Accept': '1.0',
         },
         data: qs.stringify(data),
@@ -62,9 +62,7 @@ exports.getRefreshToken = async function() {
 
         const response = await axios(options)
         const retorno = response.data;
-        console.log("Novo Token: ", retorno);
-        variaveis.setAcessToken = retorno.access_token
-        variaveis.setRefreshToken = retorno.refresh_token
+        console.log("retorno refreshcode", retorno);
         return retorno;
     } catch (err) {
 
@@ -85,7 +83,7 @@ exports.getProdutoFullById = async function(id_produto) {
         method: 'get',
         headers: {
             'content-type': 'application/json',
-            'Authorization': `Bearer ${variaveis.getAcessToken()}`
+            'Authorization': `Bearer ${emp.access_token.trim()}`
         }
     }
 
@@ -95,7 +93,7 @@ exports.getProdutoFullById = async function(id_produto) {
 
 }
 
-exports.getProdutoSimpleByIds = async function(id_produtos, id_categoria) {
+exports.getProdutoSimpleByIds = async function(id_produtos, emp) {
 
     let lista = {}
 
@@ -104,11 +102,11 @@ exports.getProdutoSimpleByIds = async function(id_produtos, id_categoria) {
         method: 'get',
         params: {
             idProdutos: id_produtos,
-            idCategoria: id_categoria
+            idCategoria: emp.id_categoria
         },
         headers: {
             'content-type': 'application/json',
-            'Authorization': `Bearer ${variaveis.getAcessToken()}`
+            'Authorization': `Bearer ${emp.access_token.trim()}`
         }
     }
 
@@ -118,7 +116,7 @@ exports.getProdutoSimpleByIds = async function(id_produtos, id_categoria) {
 
 }
 
-exports.postAjustaSaldo = async function(id_deposito, id_produto, qtd, preco, histo) {
+exports.postAjustaSaldo = async function(id_deposito, id_produto, qtd, preco, histo, emp) {
 
     let lista = {}
 
@@ -140,7 +138,7 @@ exports.postAjustaSaldo = async function(id_deposito, id_produto, qtd, preco, hi
         },
         headers: {
             'content-type': 'application/json',
-            'Authorization': `Bearer ${variaveis.getAcessToken()}`
+            'Authorization': `Bearer ${emp.access_token.trim()}`
         }
     }
 
@@ -158,7 +156,7 @@ exports.getSaldos = async function(produtos) {
         params: { idsProdutos: produtos },
         headers: {
             'content-type': 'application/json',
-            'Authorization': `Bearer ${variaveis.getAcessToken()}`
+            'Authorization': `Bearer ${emp.access_token.trim()}`
         }
     }
     try {
@@ -171,7 +169,7 @@ exports.getSaldos = async function(produtos) {
 
 }
 
-exports.getListaWork = async function() {
+exports.getListaWork = async function(emp) {
 
 
     let workList = [];
@@ -180,7 +178,7 @@ exports.getListaWork = async function() {
 
     try {
 
-        let lista = await this.getProdutoSimpleByIds(idProdutos, variaveis.getIdCategoria())
+        let lista = await this.getProdutoSimpleByIds(idProdutos, emp)
 
         //console.log("RETORNO ", lista);
 
@@ -191,7 +189,7 @@ exports.getListaWork = async function() {
                 nome: bling.nome,
                 codigo: bling.codigo,
                 preco: bling.preco,
-                id_deposito: variaveis.getIdDeposito(),
+                id_deposito: variaveis.getIdDeposito(emp),
                 saldo_bling: 0,
                 saldo_chg: 0
             })
@@ -208,13 +206,13 @@ exports.getListaWork = async function() {
 
 };
 
-exports.getCategorias = async function() {
+exports.getCategorias = async function(emp) {
     const options = {
         url: `https://www.bling.com.br/Api/v3/categorias/produtos`,
         method: 'get',
         headers: {
             'content-type': 'application/json',
-            'Authorization': `Bearer ${variaveis.getAcessToken()}`
+            'Authorization': `Bearer ${emp.access_token.trim()}`
         }
     }
 
@@ -229,7 +227,7 @@ exports.getCategorias = async function() {
 
 }
 
-exports.getDepositos = async function() {
+exports.getDepositos = async function(emp) {
 
 
     const options = {
@@ -237,7 +235,7 @@ exports.getDepositos = async function() {
         method: 'get',
         headers: {
             'content-type': 'application/json',
-            'Authorization': `Bearer ${variaveis.getAcessToken()}`
+            'Authorization': `Bearer ${emp.access_token.trim()}`
         }
     }
 

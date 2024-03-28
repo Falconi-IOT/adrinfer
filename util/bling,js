@@ -2,75 +2,41 @@ const empresaSrv = require("../service/empresaService");
 const blingSrv = require("../service/blingService.js");
 const variaveis = require("../global/variaveis");
 
-exports.getAtualizaToken = async function (id_empresa) {
-  let emp = {
-    id: 0,
-    cnpj_cpf: "",
-    razao: "",
-    cliente_id: "",
-    cliente_secret: "",
-    link: "",
-    url_redirecionamento: "",
-    code: "",
-    access_token: "",
-    refresh_token: "",
-    id_deposito: "",
-    id_categoria: "",
-    key_chg: "",
-    ativo: "S",
-    tempo: 30,
-    user_insert: 99,
-    user_update: 0,
-  };
+exports.getAtualizaToken = async function(emp) {
 
-  let retorno = {
-    access_token: "",
-    refresh_token: "",
-  };
-
-  try {
-    try {
-      emp = await empresaSrv.getEmpresa(id_empresa);
-    } catch (error) {
-      throw error;
-    }
-
-    console.log("getAtualizaToken Empresa: => ", emp);
-
-    variaveis.setCode(emp.code.trim());
-
-    variaveis.setAcessToken(emp.access_token.trim());
-
-    variaveis.setRefreshToken(emp.refresh_token.trim());
-
-    variaveis.setIdDeposito(emp.id_deposito.trim());
-
-    variaveis.setIdCategoria(emp.id_categoria.trim());
-
-    variaveis.setKeyChg(emp.key_chg);
+    let retorno = {};
 
     try {
-      const retorno = await blingSrv.getRefreshToken();
+
+        console.log("getAtualizaToken Empresa: => ", emp);
+
+
+        try {
+            retorno = await blingSrv.getRefreshToken(emp);
+        } catch (error) {
+            throw error;
+        }
+
+        try {
+
+            console.log("retorno", retorno);
+
+            emp.access_token = retorno.access_token.trim();
+
+            emp.refresh_token = retorno.refresh_token.trim();
+
+            const empAlterada = await empresaSrv.updateEmpresa(emp);
+
+            console.log("empAlterada", empAlterada);
+
+        } catch (error) {
+            throw error;
+        }
+
+        console.log("TOKEN ATUALIZADO COM SUCESSO!");
     } catch (error) {
-      throw error;
+        throw error;
     }
 
-    try {
-      emp.access_token = retorno.access_token;
-
-      emp.refresh_token = retorno.refresh_token;
-
-      const empAlterada = await empresaSrv.updateEmpresa(emp);
-
-      //console.log(empAlterada);
-    } catch (error) {
-      throw error;
-    }
-
-    console.log("TOKEN ATUALIZADO COM SUCESSO!");
-  } catch (error) {
-    throw error;
-  }
-
-  return;
+    return;
 };
