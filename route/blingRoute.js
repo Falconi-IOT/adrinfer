@@ -2,13 +2,36 @@ const express = require("express");
 const empresaSrv = require("../service/empresaService");
 const axios = require("axios");
 const blingSrv = require("../service/blingService.js");
-const chgSrv = require("../service/chgService.js");
 const getCredentials = require("../util/credentials.js");
 const variaveis = require("../global/variaveis");
 const processados = require("../global/processados");
 
 const qs = require("querystring");
 const router = express.Router();
+
+const convertSeconds = (seconds) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  const hourString = hours > 0 ? `${hours} hour${hours > 1 ? "s" : ""}` : "";
+  const minuteString =
+    minutes > 0 ? `${minutes} minute${minutes > 1 ? "s" : ""}` : "";
+  const secondString =
+    remainingSeconds > 0
+      ? `${remainingSeconds} second${remainingSeconds > 1 ? "s" : ""}`
+      : "";
+
+  if (hours > 0) {
+    return `${hourString} : ${minuteString || "0 minute"} ${
+      secondString && `: ${secondString}`
+    }`;
+  } else if (!hours && minutes > 0) {
+    return `${minuteString} ${secondString && `: ${secondString}`}`;
+  }
+
+  return `${secondString} Segundos`;
+};
 
 router.get("/api/bling/recebercode/:id_empresa", async function (req, res) {
   let empresa = {};
@@ -244,118 +267,25 @@ router.get("/api/bling/getprocessados/:id_empresa", async function (req, res) {
 });
 
 router.get("/api/bling/sincronizarsaldo", async function (req, res) {
-  let idsProdutos = [];
-  let codigoProdutos = [];
-  let contador = 0;
-  let emp = {};
   try {
-    try {
-      emp = await empresaSrv.getEmpresa(1);
-    } catch (error) {
-      throw error;
-    }
-    console.log("BUSCAR LISTWORK");
-    const listaWork = await blingSrv.getListaWork(emp);
-    listaWork.forEach((produto) => {
-      idsProdutos.push(produto.id);
-      codigoProdutos.push({ codigo: produto.codigo });
-    });
-    console.log("", idsProdutos);
-    console.log("BUSCAR SALDOS BLING");
-    const saldosBling = await blingSrv.getSaldos(idsProdutos, emp);
-    console.log(saldosBling);
-    console.log("BUSCAR SALDOS CHG DOS SEGUINTES CODIGOS: ");
-    console.log(codigoProdutos);
-    saldosCHG = await chgSrv.getProdutoByCodigoArray(codigoProdutos);
-    console.log("SALDOS CHG ENCONTRADOS:");
-    for (const [index, dado] of saldosCHG.entries()) {
-      console.log("==>", dado);
-    }
-    //console.log("SALDOS CHG ENCONTRADOS!", saldosCHG);
-    listaWork.forEach((item) => {
-      //console.log("item", item);
-      var bling = saldosBling.filter((x) => x.produto.id === item.id);
-      if (bling) {
-        //console.log("bling", bling);
-        //console.log("bling.produto", bling[0].produto.id);
-        item.saldo_bling = bling[0].saldoFisicoTotal;
-      }
-      var chg = saldosCHG.filter((x) => x.codigo === item.codigo);
-      if (chg) {
-        //console.log("chg", chg);
-        if (typeof chg[0].estoque !== "undefined") {
-          item.saldo_chg = chg[0].estoque;
-        } else {
-          item.saldo_chg = -999999;
-        }
-      }
-    });
-    console.log("RESULTADOS");
-    processados.clearProcessados();
-    for (const [index, dado] of listaWork.entries()) {
-      if (dado.saldo_bling != dado.saldo_chg) {
-        if (dado.saldo_chg == -999999) {
-          processados.addProcessados({
-            id_empresa: emp.id,
-            id_tarefa: 0,
-            codigo: dado.codigo,
-            descricao: dado.nome,
-            saldo_bling: dado.saldo_bling,
-            saldo_chg: "",
-            ocorrencia: "Produto Não Encontrado Na CHG",
-          });
-          console.log(
-            "Produto - ",
-            dado.id,
-            dado.codigo,
-            dado.nome,
-            "Produto Não Encontrado Na CHG"
-          );
-        } else {
-          processados.addProcessados({
-            id_empresa: emp.id,
-            id_tarefa: 0,
-            codigo: dado.codigo,
-            descricao: dado.nome,
-            saldo_bling: dado.saldo_bling,
-            saldo_chg: dado.saldo_chg,
-            ocorrencia: `Saldo Alterado Para ${dado.saldo_chg}.`,
-          });
-          console.log(
-            "Produto - ",
-            dado.id,
-            dado.codigo,
-            dado.nome,
-            dado.saldo_bling,
-            dado.saldo_chg
-          );
-        }
-        /* await blingSrv.postAjustaSaldo(
-                                                                                                                                                                                            dado.id_deposito,
-                                                                                                                                                                                            dado.id,
-                                                                                                                                                                                            dado.saldo_chg,
-                                                                                                                                                                                            dado.preco,
-                                                                                                                                                                                            "AJUSTE AUTOMÁTICO CHG"
-                                                                                                                                                                                        );*/
-        contador++;
-      } else {
-        processados.addProcessados({
-          id_empresa: emp.id,
-          id_tarefa: 0,
-          codigo: dado.codigo,
-          descricao: dado.nome,
-          saldo_bling: dado.saldo_bling,
-          saldo_chg: dado.saldo_chg,
-          ocorrencia: `Saldo NÃO ALTERADO!}.`,
-        });
-      }
-    }
-    const men = `Fim Do Processamento. ${
-      contador == 0
-        ? "NENHUM PRODUTO AJUSTADO!"
-        : contador.toString() + " PRODUTOS AJUSTADOS!"
-    }`;
-    res.status(200).json({ message: men });
+    const inicio = new Date();
+    response = await blingSrv.sincronizacao(1);
+    const final = new Date();
+    const tempo = final.getTime() - inicio.getTime();
+    const segundos = tempo / 1000; // em segundos
+    console.log(
+      "inicio",
+      inicio,
+      "final",
+      final,
+      "tempo",
+      tempo,
+      "Tempo Gasto em segundos: ",
+      segundos,
+      "hora: ",
+      convertSeconds(segundos)
+    );
+    res.status(200).json(response);
   } catch (error) {
     if (error.response) {
       console.log(error.response.data);

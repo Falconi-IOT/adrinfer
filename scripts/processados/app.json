@@ -1,0 +1,216 @@
+{
+  "app": {
+    "backend": {
+      "src": "C://Repositorios Git//Adrinfer//backend",
+      "database": {
+        "type": "POSGRESQL",
+        "name": "db_Adrinfer",
+        "conexao": {
+          "user": "postgres",
+          "password": "123456",
+          "host": "localhost",
+          "port": 5432
+        },
+        "script_src": "C://Repositorios Git//Adrinfer//backend//scripts//processados"
+      },
+      "tables": [
+        {
+          "name": "processados",
+          "fields": [
+            {
+              "name": "id_empresa",
+              "type": "int4",
+              "length": 0,
+              "precision": 0,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            },
+            {
+              "name": "id_tarefa",
+              "type": "int4",
+              "length": 0,
+              "precision": 0,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            },
+            {
+              "name": "codigo",
+              "type": "varchar",
+              "length": 20,
+              "precision": 0,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            },
+            {
+              "name": "descricao",
+              "type": "varchar",
+              "length": 150,
+              "precision": 0,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            },
+            {
+              "name": "saldo_bling",
+              "type": "numeric",
+              "length": 12,
+              "precision": 3,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            },
+            {
+              "name": "saldo_chg",
+              "type": "numeric",
+              "length": 12,
+              "precision": 3,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            },
+            {
+              "name": "ocorrencia",
+              "type": "varchar",
+              "length": 150,
+              "precision": 0,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            },
+            {
+              "name": "user_insert",
+              "type": "int4",
+              "length": 0,
+              "precision": 0,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            },
+            {
+              "name": "user_update",
+              "type": "int4",
+              "length": 0,
+              "precision": 0,
+              "nulo": "N",
+              "padrao": "",
+              "validacao": []
+            }
+          ],
+          "inner_join": [],
+          "left_join": [],
+          "primaryKey": [
+            {
+              "key": "id_empresa"
+            },
+            {
+              "key": "id_tarefa"
+            },
+            {
+              "key": "codigo"
+            }
+          ],
+          "variables": {
+            "getone": "processado",
+            "getall": "processados",
+            "alias": "proce"
+          },
+          "where": {
+            "parametro_01": [
+              {
+                "name": "id_empresa",
+                "filtro": "S",
+                "atividador": " !== 0 ",
+                "tipo": "number",
+                "padrao": 0
+              },
+              {
+                "name": "id_tarefa",
+                "filtro": "S",
+                "atividador": " !== 0 ",
+                "tipo": "number",
+                "padrao": 0
+              },
+              {
+                "name": "codigo",
+                "filtro": "S",
+                "atividador": " !== '' ",
+                "tipo": "number",
+                "padrao": ""
+              },
+              {
+                "name": "pagina",
+                "filtro": "N",
+                "atividador": "",
+                "tipo": "number",
+                "padrao": 0
+              },
+              {
+                "name": "tamPagina",
+                "filtro": "N",
+                "atividador": "",
+                "tipo": "number",
+                "padrao": 50
+              },
+              {
+                "name": "contador",
+                "filtro": "N",
+                "atividador": "",
+                "tipo": "string",
+                "padrao": "N"
+              },
+              {
+                "name": "orderby",
+                "filtro": "N",
+                "atividador": "",
+                "tipo": "string",
+                "padrao": ""
+              },
+              {
+                "name": "sharp",
+                "filtro": "N",
+                "atividador": "",
+                "tipo": "boolean",
+                "padrao": "false"
+              }
+            ]
+          },
+          "orderby": [
+            {
+              "label": "",
+              "comparativo": " != '' ",
+              "key": "proce.id_empresa,proce.id_tarega,proce.codigo"
+            },
+            {
+              "label": "Código",
+              "comparativo": " != 0 ",
+              "key": "proce.id_empresa,proce.id_tarefa,proce.codigo"
+            }
+          ],
+          "tablespace": "Producao"
+        }
+      ],
+      "parametros": []
+    },
+    "frontend": {
+      "src": "C://Repositorios Git//Adrinfer//frontend//src//app",
+      "server": {
+        "includes": [
+          {
+            "variable": "express",
+            "from": "express"
+          },
+          {
+            "variable": "cors",
+            "from": "cors"
+          }
+        ],
+        "app": "app",
+        "porta": 3000,
+        "rotas": [{ "path": "/", "require": ".//route//tarefaRoute.js" }]
+      }
+    }
+  }
+}
