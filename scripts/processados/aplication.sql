@@ -13,7 +13,7 @@ DROP TABLE IF EXISTS processados;
 CREATE TABLE Public.processados (
 		id_empresa int4  NOT NULL  , 
 		id_tarefa int4  NOT NULL  , 
-		codigo varchar(20)  NOT NULL  , 
+		codigo varchar(60)  NOT NULL  , 
 		descricao varchar(150)  NOT NULL  , 
 		saldo_bling numeric(12,3)  NOT NULL  , 
 		saldo_chg numeric(12,3)  NOT NULL  , 
