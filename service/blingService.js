@@ -12,6 +12,8 @@ const qs = require("querystring");
 //const ID_DEPOSITO = 14887604950
 //const ID_CATEGORIA = 9260994
 
+process.env.TZ = "America/Araguaina";
+
 exports.getToken = async function(emp) {
     const data = {
         grant_type: "authorization_code",
@@ -240,9 +242,9 @@ exports.sincronizacao = async function(id_empresa) {
                     id: 0,
                     id_usuario: 99,
                     descricao: "GERADO AUTOMATICAMENTE",
-                    agenda: new Date(),
-                    inicial: new Date(),
-                    final: null,
+                    tempo: 0,
+                    inicial: new Date().toLocaleString("pt-BR"),
+                    final: new Date().toLocaleString("pt-BR"),
                     qtd_total: 0,
                     qtd_erro: 0,
                     status: 0,
@@ -284,7 +286,7 @@ exports.sincronizacao = async function(id_empresa) {
                 if (chg) {
                     //console.log("chg", chg);
                     if (typeof chg[0].estoque !== "undefined") {
-                        item.saldo_chg = 0; //chg[0].estoque;
+                        item.saldo_chg = chg[0].estoque;
                     } else {
                         item.saldo_chg = -999999;
                     }
@@ -292,12 +294,13 @@ exports.sincronizacao = async function(id_empresa) {
             });
             console.log("RESULTADOS");
             processados.clearProcessados();
+            tarefa.final = new Date().toLocaleString("pt-BR");
             for (const [index, dado] of listaWork.entries()) {
                 if (dado.saldo_bling != dado.saldo_chg) {
                     if (dado.saldo_chg == -999999) {
                         const processado = {
                             id_empresa: emp.id,
-                            id_tarefa: 0,
+                            id_tarefa: tarefa.id,
                             codigo: dado.codigo,
                             descricao: dado.nome,
                             saldo_bling: dado.saldo_bling,
@@ -309,7 +312,7 @@ exports.sincronizacao = async function(id_empresa) {
                         await processadoSrv.insertProcessado(processado);
                         processados.addProcessados({
                             id_empresa: emp.id,
-                            id_tarefa: 0,
+                            id_tarefa: tarefa.id,
                             codigo: dado.codigo,
                             descricao: dado.nome,
                             saldo_bling: dado.saldo_bling,
@@ -326,7 +329,7 @@ exports.sincronizacao = async function(id_empresa) {
                     } else {
                         const processado = {
                             id_empresa: emp.id,
-                            id_tarefa: 0,
+                            id_tarefa: tarefa.id,
                             codigo: dado.codigo,
                             descricao: dado.nome,
                             saldo_bling: dado.saldo_bling,
@@ -368,7 +371,7 @@ exports.sincronizacao = async function(id_empresa) {
                 } else {
                     const processado = {
                         id_empresa: emp.id,
-                        id_tarefa: 0,
+                        id_tarefa: tarefa.id,
                         codigo: dado.codigo,
                         descricao: dado.nome,
                         saldo_bling: dado.saldo_bling,
@@ -389,6 +392,10 @@ exports.sincronizacao = async function(id_empresa) {
                     });
                 }
             }
+            tarefa.final = new Date().toLocaleString("pt-BR");
+
+            await tarefaSrv.updateTarefa(tarefa);
+
             const men = `Fim Do Processamento. ${
       contador == 0
         ? "NENHUM PRODUTO AJUSTADO!"
