@@ -54,10 +54,10 @@
               "validacao": []
             },
             {
-              "name": "agenda",
-              "type": "timestamp",
-              "length": 0,
-              "precision": 0,
+              "name": "tempo",
+              "type": "numeric",
+              "length": 15,
+              "precision": 3,
               "nulo": "N",
               "padrao": "",
               "validacao": []

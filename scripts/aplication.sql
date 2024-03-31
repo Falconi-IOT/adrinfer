@@ -15,7 +15,7 @@ CREATE TABLE Public.tarefas (
 		id serial  NOT NULL  , 
 		id_usuario int4  NOT NULL  , 
 		descricao varchar(50)  NOT NULL  , 
-		tempo int4  NOT NULL default 0 , 
+		tempo numeric(15,3) NOT NULL default 0 , 
 		inicial varchar(20)  NOT NULL default '' , 
 		final varchar(20)  NOT NULL default '' , 
 		qtd_total int4  NOT NULL  , 

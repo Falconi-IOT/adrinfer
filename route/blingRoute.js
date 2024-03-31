@@ -10,20 +10,20 @@ const qs = require("querystring");
 const router = express.Router();
 
 const convertSeconds = (seconds) => {
-        const hours = Math.floor(seconds / 3600);
-        const minutes = Math.floor((seconds % 3600) / 60);
-        const remainingSeconds = seconds % 60;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
 
-        const hourString = hours > 0 ? `${hours} hour${hours > 1 ? "s" : ""}` : "";
-        const minuteString =
-            minutes > 0 ? `${minutes} minute${minutes > 1 ? "s" : ""}` : "";
-        const secondString =
-            remainingSeconds > 0 ?
-            `${remainingSeconds} second${remainingSeconds > 1 ? "s" : ""}` :
-            "";
+  const hourString = hours > 0 ? `${hours} hour${hours > 1 ? "s" : ""}` : "";
+  const minuteString =
+    minutes > 0 ? `${minutes} minute${minutes > 1 ? "s" : ""}` : "";
+  const secondString =
+    remainingSeconds > 0
+      ? `${remainingSeconds} second${remainingSeconds > 1 ? "s" : ""}`
+      : "";
 
-        if (hours > 0) {
-            return `${hourString} : ${minuteString || "0 minute"} ${
+  if (hours > 0) {
+    return `${hourString} : ${minuteString || "0 minute"} ${
       secondString && `: ${secondString}`
     }`;
   } else if (!hours && minutes > 0) {
@@ -362,6 +362,33 @@ router.get("/api/bling/getdepositos", async function (req, res) {
         res
           .status(500)
           .json({ erro: "BAK-END", tabela: "empresa", message: err.message });
+      }
+    }
+  }
+});
+
+router.get("/api/bling/produtosallpage", async function (req, res) {
+  try {
+    console.log("produtosallpage");
+    response = await blingSrv.getProdutoSimplesAllPages(1);
+    for (const [index, dado] of response.entries()) {
+      console.log(index, dado.codigo, dado.descricao);
+    }
+    res.status(200).json(response);
+  } catch (error) {
+    if (error.response) {
+      console.log(error.response.data);
+      console.log(error.response.status);
+      res.status(200).json({ message: error.response.data });
+    } else {
+      if (error.name == "MyExceptionDB") {
+        res.status(409).json(error);
+      } else {
+        res.status(500).json({
+          erro: "BAK-END",
+          tabela: "SINCRONIZAÇÃO",
+          message: error.message,
+        });
       }
     }
   }
