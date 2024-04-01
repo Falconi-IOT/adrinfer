@@ -6,6 +6,7 @@ const tarefaSrv = require("../service/tarefaService.js");
 const processadoSrv = require("../service/processadoService");
 const processados = require("../global/processados");
 const chgSrv = require("../service/chgService.js");
+const shared = require("../util/shared.js");
 const qs = require("querystring");
 //const ACESSTOKEN = "824066939464910bcb89eee3bd77ace9e17aaf5e"
 //const ACESSTOKEN = "b878e80a59a823c2339cff192ca67888070813e8"
@@ -245,7 +246,6 @@ exports.sincronizacao = async function (id_empresa) {
   let page = 0;
   let listaWork = [];
   const inicio = new Date();
-  const validade = shared.ValidarToken(emp);
 
   try {
     emp = await empresaSrv.getEmpresa(id_empresa);
@@ -270,6 +270,7 @@ exports.sincronizacao = async function (id_empresa) {
   }
 
   try {
+    const validade = shared.ValidarToken(emp);
     if (validade.minutos_restantes <= 60) {
       await bling.getAtualizaToken(emp);
     } else {
