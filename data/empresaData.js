@@ -238,6 +238,9 @@ exports.updateEmpresa = function (empresa) {
  		 ,   user_insert = ${empresa.user_insert} 
  		 ,   user_update = ${empresa.user_update} 
  		 where id = ${empresa.id}  returning * `;
+
+  console.log(strSql);
+
   return db.oneOrNone(strSql);
 };
 /* CRUD - DELETE */

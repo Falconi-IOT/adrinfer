@@ -245,29 +245,41 @@ exports.sincronizacao = async function (id_empresa) {
   let page = 0;
   let listaWork = [];
   const inicio = new Date();
+  const validade = shared.ValidarToken(emp);
 
   try {
-    try {
-      emp = await empresaSrv.getEmpresa(id_empresa);
-      tarefa = {
-        id_empresa: emp.id,
-        id: 0,
-        id_usuario: 99,
-        descricao: "GERADO AUTOMATICAMENTE",
-        tempo: 0,
-        inicial: new Date().toLocaleString("pt-BR"),
-        final: new Date().toLocaleString("pt-BR"),
-        qtd_total: 0,
-        qtd_erro: 0,
-        status: 0,
-        user_insert: 99,
-        user_update: 0,
-      };
-      tarefa = await tarefaSrv.insertTarefa(tarefa);
-      console.log("tarefa", tarefa);
-    } catch (error) {
-      throw error;
+    emp = await empresaSrv.getEmpresa(id_empresa);
+    tarefa = {
+      id_empresa: emp.id,
+      id: 0,
+      id_usuario: 99,
+      descricao: "GERADO AUTOMATICAMENTE",
+      tempo: 0,
+      inicial: new Date().toLocaleString("pt-BR"),
+      final: new Date().toLocaleString("pt-BR"),
+      qtd_total: 0,
+      qtd_erro: 0,
+      status: 0,
+      user_insert: 99,
+      user_update: 0,
+    };
+    tarefa = await tarefaSrv.insertTarefa(tarefa);
+    console.log("tarefa", tarefa);
+  } catch (error) {
+    throw error;
+  }
+
+  try {
+    if (validade.minutos_restantes <= 60) {
+      await bling.getAtualizaToken(emp);
+    } else {
+      console.log("validade: ", validade);
     }
+  } catch (error) {
+    throw error;
+  }
+
+  try {
     console.log("BUSCAR LISTWORK");
     while (page >= 0) {
       page = page + 1;

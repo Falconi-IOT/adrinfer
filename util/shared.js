@@ -85,3 +85,49 @@ exports.NullOrText = function (value) {
     return `'${value}'`;
   }
 };
+
+exports.ValidarToken = function (emp) {
+  process.env.TZ = "America/Araguaina";
+
+  try {
+    const hoje = new Date().toLocaleString("pt-BR");
+
+    const validade = new Date(Date.parse(emp.access_token_date));
+
+    validade.setSeconds(validade.getSeconds() + emp.access_token_validade);
+
+    const tempo = difDate(new Date(Date.parse(hoje)), validade);
+
+    return tempo;
+  } catch (error) {
+    console.log(error);
+    return { dias: 0, horas: 0, minutos: 0, segundos: 0, minutos_restantes: 0 };
+  }
+};
+
+function difDate(date1, date2) {
+  try {
+    var agora = date1;
+    var vencimento = date2;
+    var diffMs = vencimento - agora; // milliseconds between now & vencimento
+    var diffDays = Math.floor(diffMs / 86400000); // days
+    var diffHrs = Math.floor((diffMs % 86400000) / 3600000); // hours
+    var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+    var minutos_restantes = diffDays * 24 * 60 + diffHrs * 60 + diffMins;
+    return {
+      dias: diffDays,
+      horas: diffHrs,
+      minutos: diffMins,
+      minutos_restantes: minutos_restantes,
+    };
+  } catch (error) {
+    console.log(error);
+    return {
+      dias: 0,
+      horas: 0,
+      minutos: 0,
+      segundos: 0,
+      minutos_restantes: 0,
+    };
+  }
+}
