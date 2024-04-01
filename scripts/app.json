@@ -64,8 +64,8 @@
             },
             {
               "name": "inicial",
-              "type": "timestamp",
-              "length": 0,
+              "type": "varchar",
+              "length": 20,
               "precision": 0,
               "nulo": "N",
               "padrao": "",
@@ -73,8 +73,8 @@
             },
             {
               "name": "final",
-              "type": "timestamp",
-              "length": 0,
+              "type": "varchar",
+              "length": 20,
               "precision": 0,
               "nulo": "N",
               "padrao": "",
@@ -343,8 +343,8 @@
             },
             {
               "name": "access_token_date",
-              "type": "datetime",
-              "length": 0,
+              "type": "varchar",
+              "length": 25,
               "precision": 0,
               "nulo": "N",
               "padrao": ""
@@ -364,8 +364,8 @@
             },
             {
               "name": "refresh_token_date",
-              "type": "datetime",
-              "length": 0,
+              "type": "varchar",
+              "length": 25,
               "precision": 0,
               "nulo": "N",
               "padrao": ""

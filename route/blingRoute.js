@@ -5,9 +5,10 @@ const blingSrv = require("../service/blingService.js");
 const getCredentials = require("../util/credentials.js");
 const variaveis = require("../global/variaveis");
 const processados = require("../global/processados");
-
 const qs = require("querystring");
 const router = express.Router();
+
+process.env.TZ = "America/Araguaina";
 
 const convertSeconds = (seconds) => {
   const hours = Math.floor(seconds / 3600);
@@ -55,7 +56,13 @@ router.get("/api/bling/recebercode/:id_empresa", async function (req, res) {
       try {
         const token = await blingSrv.getToken(emp);
 
+        console.log("token", token);
+
         emp.access_token = token.access_token;
+
+        emp.access_token_validade = token.expires_in;
+
+        emp.access_token_date = new Date().toLocaleString("pt-BR");
 
         emp.refresh_token = token.refresh_token;
 

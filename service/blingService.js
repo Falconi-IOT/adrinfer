@@ -306,12 +306,12 @@ exports.sincronizacao = async function (id_empresa) {
         }
         var chg = saldosCHG.filter((x) => x.codigo === item.codigo);
         if (chg) {
-          //console.log("chg", chg);
           if (typeof chg[0].estoque !== "undefined") {
-            item.saldo_chg = 0; //chg[0].estoque;
+            item.saldo_chg = chg[0].estoque;
           } else {
             item.saldo_chg = -999999;
           }
+          console.log("bling - chg", item.saldo_bling, item.saldo_chg);
         }
       });
       console.log("RESULTADOS");
@@ -381,7 +381,7 @@ exports.sincronizacao = async function (id_empresa) {
               dado.saldo_bling,
               dado.saldo_chg
             );
-            await this.postAjustaSaldo(
+            novoSaldo = await this.postAjustaSaldo(
               dado.id_deposito,
               dado.id,
               dado.saldo_chg,
@@ -389,6 +389,7 @@ exports.sincronizacao = async function (id_empresa) {
               "AJUSTE AUTOMÁTICO CHG",
               emp
             );
+            console.log("novoSaldo", novoSaldo);
             contador++;
           }
         } else {
