@@ -163,7 +163,6 @@ router.get("/api/bling/getcode", function (req, response) {
 });
 
 router.get("/api/bling/getprodutos/:id_produto", function (req, response) {
-  const lixo = `https://www.bling.com.br/Api/v3/produtos/${req.params.id_produto}`;
   console.log(lixo);
   const options = {
     url: `https://www.bling.com.br/Api/v3/produtos/${req.params.id_produto}`,

@@ -8,10 +8,6 @@ const processados = require("../global/processados");
 const chgSrv = require("../service/chgService.js");
 const shared = require("../util/shared.js");
 const qs = require("querystring");
-//const ACESSTOKEN = "824066939464910bcb89eee3bd77ace9e17aaf5e"
-//const ACESSTOKEN = "b878e80a59a823c2339cff192ca67888070813e8"
-//const ID_DEPOSITO = 14887604950
-//const ID_CATEGORIA = 9260994
 
 process.env.TZ = "America/Araguaina";
 
@@ -67,6 +63,25 @@ exports.getRefreshToken = async function (emp) {
 };
 
 exports.getProdutoFullById = async function (id_produto) {
+  let lista = {};
+
+  ////console.log(`params: ${id_produto}`)
+
+  const options = {
+    url: `https://www.bling.com.br/Api/v3/produtos/${id_produto}`,
+    method: "get",
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${emp.access_token.trim()}`,
+    },
+  };
+
+  response = await axios(options);
+
+  return response.data.data;
+};
+
+exports.getProdutoFullByCodigo = async function (id_produto) {
   let lista = {};
 
   ////console.log(`params: ${id_produto}`)
@@ -300,7 +315,6 @@ exports.sincronizacao = async function (id_empresa) {
       console.log("", idsProdutos);
       console.log("BUSCAR SALDOS BLING");
       const saldosBling = await this.getSaldos(idsProdutos, emp);
-      console.log(saldosBling);
       console.log("BUSCAR SALDOS CHG DOS SEGUINTES CODIGOS: ");
       console.log(codigoProdutos);
       saldosCHG = await chgSrv.getProdutoByCodigoArray(codigoProdutos);

@@ -1,5 +1,11 @@
 const express = require("express");
+const {
+  ToadScheduler,
+  SimpleIntervalJob,
+  AsyncTask,
+} = require("toad-scheduler");
 const srvEmpresa = require("../service/empresaService");
+const srvBling = require("../service/blingService");
 const shared = require("../util/shared");
 const router = express.Router();
 
@@ -16,6 +22,26 @@ router.get("", async function (req, res) {
 
   const validade_tempo = shared.ValidarToken(emp);
 
+  const scheduler = new ToadScheduler();
+
+  const task = new AsyncTask(
+    "simple task",
+    () => {
+      return srvBling.sincronizacao(1).then((result) => {
+        console.log(result);
+      });
+    },
+    (error) => {
+      console.log(error);
+    }
+  );
+  const job = new SimpleIntervalJob(
+    { minutes: 20, runImmediately: true },
+    task
+  );
+
+  scheduler.addSimpleIntervalJob(job);
+
   res.status(200).json({
     message: "Sistema No Ar!",
     horario: hoje,
@@ -23,15 +49,5 @@ router.get("", async function (req, res) {
     validade_tempo: validade_tempo,
   });
 });
-
-function convertDBDateTime(value) {
-  let soData = value.substring(0, 10);
-
-  const pedacos = soData.split("/");
-
-  soData = pedacos[2] + "-" + pedacos[1] + "-" + pedacos[0];
-
-  return soData + value.substring(10) + "GMT-0300";
-}
 
 module.exports = router;
