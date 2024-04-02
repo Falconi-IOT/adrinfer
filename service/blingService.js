@@ -1,5 +1,5 @@
 const axios = require("axios");
-const variaveis = require("../global/variaveis");
+const agendas = require("../global/agendas.js");
 const credentials = require("../util/credentials.js");
 const empresaSrv = require("../service/empresaService");
 const tarefaSrv = require("../service/tarefaService.js");
@@ -279,7 +279,7 @@ exports.sincronizacao = async function (id_empresa) {
       user_update: 0,
     };
     tarefa = await tarefaSrv.insertTarefa(tarefa);
-    console.log("tarefa", tarefa);
+    //console.log("tarefa", tarefa);
   } catch (error) {
     throw error;
   }
@@ -312,11 +312,11 @@ exports.sincronizacao = async function (id_empresa) {
         idsProdutos.push(produto.id);
         codigoProdutos.push({ codigo: produto.codigo });
       });
-      console.log("", idsProdutos);
+      //console.log("", idsProdutos);
       console.log("BUSCAR SALDOS BLING");
       const saldosBling = await this.getSaldos(idsProdutos, emp);
       console.log("BUSCAR SALDOS CHG DOS SEGUINTES CODIGOS: ");
-      console.log(codigoProdutos);
+      //console.log(codigoProdutos);
       saldosCHG = await chgSrv.getProdutoByCodigoArray(codigoProdutos);
       console.log("SALDOS CHG ENCONTRADOS:");
       for (const [index, dado] of saldosCHG.entries()) {
@@ -529,4 +529,26 @@ exports.getProdutoSimplesAllPages = async function (id_empresa) {
   }
 
   return lista;
+};
+
+exports.setAgendamentoEmpresa = async function (id_empresa, imediato) {
+  try {
+    emp = await empresaSrv.getEmpresa(id_empresa);
+    if (emp.ativo == "S") {
+      agendas.setAgendamento(emp.id, emp.tempo, imediato);
+    }
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.stopAgendamentoEmpresa = async function (id_empresa) {
+  try {
+    emp = await empresaSrv.getEmpresa(id_empresa);
+    if (emp.ativo == "S") {
+      agendas.stopAgendamento(`id_${emp.id}`);
+    }
+  } catch (error) {
+    throw error;
+  }
 };

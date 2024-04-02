@@ -6,7 +6,8 @@ https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-lo
 */
 //process.env.TZ = "America/Brasilia";
 const express = require("express");
-const bling = require("./util/bling,js");
+const agendas = require("./global/agendas");
+const bling = require("./util/bling.js");
 const axios = require("axios");
 const empresaSrv = require("./service/empresaService");
 const chgSrv = require("./service/chgService.js");

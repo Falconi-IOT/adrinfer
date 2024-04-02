@@ -1,6 +1,6 @@
-const empresaSrv = require("../service/empresaService");
+const empresaSrv = require("../service/empresaService.js");
 const blingSrv = require("../service/blingService.js");
-const variaveis = require("../global/variaveis");
+const variaveis = require("../global/variaveis.js");
 
 exports.getAtualizaToken = async function (emp) {
   let retorno = {};

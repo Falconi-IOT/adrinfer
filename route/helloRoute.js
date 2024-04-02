@@ -22,6 +22,7 @@ router.get("", async function (req, res) {
 
   const validade_tempo = shared.ValidarToken(emp);
 
+  /*
   const scheduler = new ToadScheduler();
 
   const task = new AsyncTask(
@@ -41,7 +42,7 @@ router.get("", async function (req, res) {
   );
 
   scheduler.addSimpleIntervalJob(job);
-
+*/
   res.status(200).json({
     message: "Sistema No Ar!",
     horario: hoje,
