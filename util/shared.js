@@ -100,7 +100,11 @@ exports.ValidarToken = function (emp) {
       Date.parse(ConvertToYYYY_MM_DDTHH_mm_ssZ(emp.access_token_date))
     );
 
+    console.log("==>", hoje, " Validade => ", validade);
+
     validade.setSeconds(validade.getSeconds() + emp.access_token_validade);
+
+    console.log(" Validade Ajustada => ", validade);
 
     const tempo = difDate(hoje, validade);
 
