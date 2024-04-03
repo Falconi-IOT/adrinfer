@@ -80,11 +80,14 @@ const chama50Paginas = async function() {
 
 const refreshToken = async function(emp) {
     const validade = shared.ValidarToken(emp);
-    if (validade.minutos_restantes <= 60) {
-        emp = await bling.getAtualizaToken(emp);
-    } else {
-        console.log("validade: ", validade);
-    }
+    emp = await bling.getAtualizaToken(emp);
+    /*
+      if (validade.minutos_restantes <= 60) {
+          emp = await bling.getAtualizaToken(emp);
+      } else {
+          console.log("validade: ", validade);
+      }
+      */
     return;
 };
 

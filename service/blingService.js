@@ -287,11 +287,12 @@ exports.sincronizacao = async function(id_empresa) {
 
         try {
             const validade = shared.ValidarToken(emp);
-            if (validade.minutos_restantes <= 60) {
-                emp = await bling.getAtualizaToken(emp);
-            } else {
-                console.log("validade: ", validade);
-            }
+            /*
+                    if (validade.minutos_restantes <= 60) {
+                        emp = await bling.getAtualizaToken(emp);
+                    } else {
+                        console.log("validade: ", validade);
+                    }*/
         } catch (error) {
             throw error;
         }
