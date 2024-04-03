@@ -1,5 +1,6 @@
 const axios = require("axios");
 const agendas = require("../global/agendas.js");
+const bling = require("../util/bling.js");
 const credentials = require("../util/credentials.js");
 const empresaSrv = require("../service/empresaService");
 const tarefaSrv = require("../service/tarefaService.js");
