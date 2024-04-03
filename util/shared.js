@@ -117,8 +117,10 @@ exports.ValidarToken = function (emp) {
 
 function ConvertToYYYY_MM_DDTHH_mm_ssZ(dataString) {
   let retorno = "";
-  console.log("Data Horiginal: ", dataString);
-  const data = dataString.substring(0, 10).replace(",", "");
+  console.log("Data Horiginal antes: ", dataString);
+  dataString = dataString.replace(",", "");
+  console.log("Data Horiginal depois: ", dataString);
+  const data = dataString.substring(0, 10);
   const hora = dataString.substring(11);
   dataArray = data.split("/");
   retorno =
