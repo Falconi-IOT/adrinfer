@@ -11,44 +11,38 @@ const router = express.Router();
 
 process.env.TZ = "America/Araguaina";
 
-router.get("", async function (req, res) {
+router.get("/hello/:id_empresa", async function (req, res) {
+  const id_empresa = req.params.id_empresa;
+
   const hoje = new Date().toLocaleString("pt-BR");
 
-  let emp = await srvEmpresa.getEmpresa(1);
+  try {
+    let emp = await srvEmpresa.getEmpresa(id_empresa);
 
-  const validade = new Date(Date.parse(emp.access_token_date));
+    const validade = shared.ValidarToken(emp);
 
-  validade.setSeconds(validade.getSeconds() + emp.access_token_validade);
-
-  const validade_tempo = shared.ValidarToken(emp);
-
-  /*
-  const scheduler = new ToadScheduler();
-
-  const task = new AsyncTask(
-    "simple task",
-    () => {
-      return srvBling.sincronizacao(1).then((result) => {
-        console.log(result);
-      });
-    },
-    (error) => {
-      console.log(error);
+    res.status(200).json({
+      message: "Sistema No Ar!",
+      Inicio: emp.access_token_date,
+      Agora: hoje,
+      validade: validade,
+    });
+  } catch (error) {
+    if (error.response) {
+      res.status(500).json(error.response.data);
+    } else {
+      if (error.name == "MyExceptionDB") {
+        console.log(error);
+      } else {
+        retorno = {
+          erro: "BAK-END",
+          tabela: "Empresa",
+          message: error.message,
+        };
+        res.status(500).json(retorno);
+      }
     }
-  );
-  const job = new SimpleIntervalJob(
-    { minutes: 20, runImmediately: true },
-    task
-  );
-
-  scheduler.addSimpleIntervalJob(job);
-*/
-  res.status(200).json({
-    message: "Sistema No Ar!",
-    horario: hoje,
-    validade_token: validade.toLocaleString("pt-BR"),
-    validade_tempo: validade_tempo,
-  });
+  }
 });
 
 module.exports = router;
