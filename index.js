@@ -33,49 +33,14 @@ const allowCors = (req, res, next) => {
   next();
 };
 
-const chgGetCatalogo = (pagina) => {
-  const url = `https://loja.chg.com.br/api/catalogo/produtos?key=cuJDtZKp55fFzsUZYM4XDgGYbGNurkFX&filial=CPS&pagina=${pagina}`;
-  axios
-    .get(url)
-    .then((res) => {
-      const produtos = res.data.data;
-      produtos.forEach((produto) => {
-        console.log(`Cod: ${produto.codigo} Nome: ${produto.nome}`);
-      });
-      //console.log(res.data.data)
-    })
-    .catch(console.error);
-};
-
-const getCatalogo = async function (pagina) {
-  let dados = await chgSrv.getChgCatalogo(pagina);
-
-  for (const [index, dado] of dados.entries()) {
-    const produto = await chgSrv.getProdutoByCodigo(dado.codigo);
-    if (produto.estoque > 0) {
-      console.log(index, dado.codigo, dado.nome, produto.estoque);
-    }
-  }
-  return;
-};
-
-const verficaCHG = async function () {
+const verficaCHG = async function (emp) {
   const produtos = [{ codigo: "0212234" }];
 
   for (const [index, dado] of produtos.entries()) {
-    const produto = await chgSrv.getProdutoByCodigo(dado.codigo);
+    const produto = await chgSrv.getProdutoByCodigo(emp, dado.codigo);
     console.log(index, produto.codigo, produto.nome, produto.estoque);
   }
   return;
-};
-
-const chama50Paginas = async function () {
-  let idx = 1;
-  while (idx < 6) {
-    console.log("Página :", idx);
-    await getCatalogo(idx);
-    idx++;
-  }
 };
 
 const refreshToken = async function (emp) {
@@ -96,7 +61,7 @@ const iniciar = async function () {
     throw error;
   }
   try {
-    await verficaCHG();
+    await verficaCHG(emp);
     await refreshToken(emp);
   } catch (error) {
     if (error.response) {
@@ -126,5 +91,3 @@ iniciar();
 app.listen(PORT, () => {
   console.log(`Servidor No Ar. Porta ${PORT}`);
 });
-
-//chama50Paginas()

@@ -1,15 +1,14 @@
 const chgData = require("../data/chgData");
 const axios = require("axios");
-const variaveis = require("../global/variaveis");
 
-exports.getChgCatalogo = async function (pagina) {
-  const url = `https://loja.chg.com.br/api/catalogo/produtos?key=${variaveis.getKeyChg()}&filial=CPS&pagina=${pagina}`;
+exports.getChgCatalogo = async function (emp, pagina) {
+  const url = `https://loja.chg.com.br/api/catalogo/produtos?key=${emp.key_chg}&filial=CPS&pagina=${pagina}`;
   let response = await axios.get(url);
   return response.data.data;
 };
 
-exports.getProdutoByCodigo = async function (codigo) {
-  const url = `https://loja.chg.com.br/api/catalogo/produto?key=${variaveis.getKeyChg()}&produto=${codigo}&filial=CPS`;
+exports.getProdutoByCodigo = async function (emp, codigo) {
+  const url = `https://loja.chg.com.br/api/catalogo/produto?key=${emp.key_chg}&produto=${codigo}&filial=CPS`;
   let response = await axios.get(url);
   if (response.data.err_code == "404") {
     return { codigo: codigo };
@@ -17,11 +16,11 @@ exports.getProdutoByCodigo = async function (codigo) {
   return response.data.data;
 };
 
-exports.getProdutoByCodigoArray = async function (produtos) {
+exports.getProdutoByCodigoArray = async function (emp, produtos) {
   let retorno = [];
   //console.log("Parametro funcao getProdutoByCodigoArray:", produtos)
   for (const [index, dado] of produtos.entries()) {
-    const produto = await this.getProdutoByCodigo(dado.codigo);
+    const produto = await this.getProdutoByCodigo(emp, dado.codigo);
     if (response.data.data == {}) {
       console.log("Produto CHG =>", response.data);
     }

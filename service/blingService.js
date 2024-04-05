@@ -318,7 +318,20 @@ exports.sincronizacao = async function (id_empresa) {
       const saldosBling = await this.getSaldos(idsProdutos, emp);
       console.log("BUSCAR SALDOS CHG DOS SEGUINTES CODIGOS: ");
       //console.log(codigoProdutos);
-      saldosCHG = await chgSrv.getProdutoByCodigoArray(codigoProdutos);
+      try {
+        saldosCHG = await chgSrv.getProdutoByCodigoArray(emp, codigoProdutos);
+      } catch (error) {
+        //fim
+        const final = new Date();
+        const tempo = final.getTime() - inicio.getTime();
+        const segundos = tempo / 1000;
+        tarefa.tempo = segundos;
+        tarefa.final = final.toLocaleString("pt-BR");
+        tarefa.descricao = "Falha Na API da CHG.";
+        await tarefaSrv.updateTarefa(tarefa);
+        return { message: "Falha Na API da CHG." };
+      }
+
       console.log("SALDOS CHG ENCONTRADOS:");
       //for (const [index, dado] of saldosCHG.entries()) {
       //    console.log("==>", dado);

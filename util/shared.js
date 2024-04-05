@@ -100,11 +100,11 @@ exports.ValidarToken = function (emp) {
       Date.parse(ConvertToYYYY_MM_DDTHH_mm_ssZ(emp.access_token_date))
     );
 
-    console.log("Hoje ==>", hoje, " Validade => ", validade);
+    //console.log("Hoje ==>", hoje, " Validade => ", validade);
 
     validade.setSeconds(validade.getSeconds() + emp.access_token_validade);
 
-    console.log(" Validade Ajustada => ", validade);
+    //console.log(" Validade Ajustada => ", validade);
 
     const tempo = difDate(hoje, validade);
 
@@ -117,9 +117,9 @@ exports.ValidarToken = function (emp) {
 
 function ConvertToYYYY_MM_DDTHH_mm_ssZ(dataString) {
   let retorno = "";
-  console.log("Data Horiginal antes: ", dataString);
+  //console.log("Data Horiginal antes: ", dataString);
   dataString = dataString.replace(",", "");
-  console.log("Data Horiginal depois: ", dataString);
+  //console.log("Data Horiginal depois: ", dataString);
   const data = dataString.substring(0, 10);
   const hora = dataString.substring(11);
   dataArray = data.split("/");
