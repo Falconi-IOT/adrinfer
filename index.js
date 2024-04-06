@@ -75,6 +75,7 @@ const iniciar = async function () {
       }
     }
   }
+  empresaSrv.AtivarEmpresas();
 };
 
 app.use(allowCors);

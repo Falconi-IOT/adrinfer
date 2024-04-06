@@ -12,6 +12,18 @@ const qs = require("querystring");
 
 process.env.TZ = "America/Araguaina";
 
+const convertSegToHorario = (seconds) => {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+
+  const hourString = `${shared.adicionaZero(hours)}`;
+  const minuteString = `${shared.adicionaZero(minutes)}`;
+  const secondString = `${shared.adicionaZero(remainingSeconds | 0)}`; // trunca as decimais
+
+  return `${hourString}:${minuteString}:${secondString}`;
+};
+
 exports.getToken = async function (emp) {
   const data = {
     grant_type: "authorization_code",
@@ -270,12 +282,13 @@ exports.sincronizacao = async function (id_empresa) {
       id: 0,
       id_usuario: 99,
       descricao: "GERADO AUTOMATICAMENTE",
-      tempo: 0,
+      tempo: "",
       inicial: new Date().toLocaleString("pt-BR"),
       final: new Date().toLocaleString("pt-BR"),
       qtd_total: 0,
       qtd_erro: 0,
       status: 0,
+      descricao_erro: "",
       user_insert: 99,
       user_update: 0,
     };
@@ -325,7 +338,7 @@ exports.sincronizacao = async function (id_empresa) {
         const final = new Date();
         const tempo = final.getTime() - inicio.getTime();
         const segundos = tempo / 1000;
-        tarefa.tempo = segundos;
+        tarefa.tempo = convertSegToHorario(segundos);
         tarefa.final = final.toLocaleString("pt-BR");
         tarefa.descricao = "Falha Na API da CHG.";
         await tarefaSrv.updateTarefa(tarefa);
@@ -462,9 +475,8 @@ exports.sincronizacao = async function (id_empresa) {
     const final = new Date();
     const tempo = final.getTime() - inicio.getTime();
     const segundos = tempo / 1000;
-    tarefa.tempo = segundos;
+    tarefa.tempo = convertSegToHorario(segundos);
     tarefa.final = final.toLocaleString("pt-BR");
-    await tarefaSrv.updateTarefa(tarefa);
     const men = `Fim Do Processamento. ${
       contador == 0
         ? "NENHUM PRODUTO AJUSTADO!"
@@ -473,6 +485,8 @@ exports.sincronizacao = async function (id_empresa) {
             contador == 0 ? "" : "S"
           }!`
     }`;
+    tarefa.descricao = men;
+    await tarefaSrv.updateTarefa(tarefa);
     return { message: men };
   } catch (error) {
     throw error;

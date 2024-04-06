@@ -1,7 +1,7 @@
-function adicionaZero(numero) {
+exports.adicionaZero = function (numero) {
   if (numero <= 9) return "0" + numero;
   else return "" + numero;
-}
+};
 
 exports.formatDate = function (date) {
   if (date == null) {

@@ -2,10 +2,8 @@ const express = require("express");
 const empresaSrv = require("../service/empresaService");
 const axios = require("axios");
 const blingSrv = require("../service/blingService.js");
-const getCredentials = require("../util/credentials.js");
-const variaveis = require("../global/variaveis");
 const processados = require("../global/processados");
-const qs = require("querystring");
+const shared = require("../util/shared.js");
 const router = express.Router();
 
 process.env.TZ = "America/Araguaina";
