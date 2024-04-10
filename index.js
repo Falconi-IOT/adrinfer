@@ -6,9 +6,8 @@ https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-lo
 */
 //process.env.TZ = "America/Brasilia";
 const express = require("express");
-const agendas = require("./global/agendas");
+const path = require("path");
 const bling = require("./util/bling.js");
-const axios = require("axios");
 const empresaSrv = require("./service/empresaService");
 const chgSrv = require("./service/chgService.js");
 const shared = require("./util/shared.js");
@@ -75,7 +74,7 @@ const iniciar = async function () {
       }
     }
   }
-  empresaSrv.AtivarEmpresas();
+  //empresaSrv.AtivarEmpresas();
 };
 
 app.use(allowCors);
@@ -86,6 +85,14 @@ app.use("/", require("./route/empresaRoute.js"));
 app.use("/", require("./route/tarefaRoute.js"));
 app.use("/", require("./route/usuarioRoute.js"));
 app.use("/", require("./route/processadoRoute.js"));
+
+// front end
+app.use(express.static(path.join(__dirname, "/application")));
+
+//correção da rota do angular
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "/application/index.html"));
+});
 
 iniciar();
 

@@ -1,0 +1,2 @@
+ng build --output-path  docs  --base-href https://falconii.github.io/Falconii-simionato_timer_frontend/
+copy "C:\Repositorios Git\Simionato\Control Time\frontend\timer\docs\index.html" "C:\Repositorios Git\Simionato\Control Time\frontend\timer\docs\404.html"
