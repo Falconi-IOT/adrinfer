@@ -65,6 +65,7 @@ CREATE TABLE Public.usuarios (
 		id serial  NOT NULL  , 
 		razao varchar(40)  NOT NULL  , 
 		ativo char(1)  NOT NULL  , 
+		senha varchar(30) NOT NULL,
 		user_insert int4  NOT NULL  , 
 		user_update int4  NOT NULL  , 
 		PRIMARY KEY(id_empresa,id) 

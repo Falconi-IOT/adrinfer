@@ -204,6 +204,7 @@ exports.getListaWork = async function (emp, page) {
 
   try {
     let lista = await this.getProdutoSimpleByIds(idProdutos, emp, page);
+    //console.log("getProdutoSimpleByIds =>", lista);
     if (lista.length == 0) {
       return workList;
     } else {
@@ -486,7 +487,8 @@ exports.sincronizacao = async function (id_empresa) {
           }!`
     }`;
     tarefa.descricao = men;
-    await tarefaSrv.updateTarefa(tarefa);
+    const tarefaAtualizada = await tarefaSrv.updateTarefa(tarefa);
+    console.log(tarefaAtualizada);
     return { message: men };
   } catch (error) {
     throw error;
