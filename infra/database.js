@@ -7,8 +7,8 @@ if (process.env.PORT) {
   db = pgp({
     user: "postgres",
     password: "PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx",
-    host: "monorail.proxy.rlwy.net",
-    port: 34218,
+    host: "postgres.railway.internal",
+    port: 5432,
     database: "railway",
   });
 } else {
@@ -22,7 +22,24 @@ if (process.env.PORT) {
 }
 
 module.exports = db;
+/*
+//interno
+postgresql://postgres:PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx@postgres.railway.internal:5432/railway
+//web
+postgresql://postgres:PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx@monorail.proxy.rlwy.net:34218/railway
 
+
+acesso via web
+
+ db = pgp({
+    user: "postgres",
+    password: "PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx",
+    host: "monorail.proxy.rlwy.net",
+    port: 34218,
+    database: "railway",
+  });
+
+*/
 /*
 db = pgp({
         user: "postgres",
