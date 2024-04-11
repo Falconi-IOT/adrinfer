@@ -6,6 +6,7 @@ https://stackoverflow.com/questions/37576685/using-async-await-with-a-foreach-lo
 */
 //process.env.TZ = "America/Brasilia";
 const express = require("express");
+require("dotenv").config();
 const path = require("path");
 const bling = require("./util/bling.js");
 const empresaSrv = require("./service/empresaService");
@@ -74,7 +75,7 @@ const iniciar = async function () {
       }
     }
   }
-  empresaSrv.AtivarEmpresas();
+  //empresaSrv.AtivarEmpresas();
 };
 
 app.use(allowCors);
@@ -95,6 +96,8 @@ app.get("*", (req, res) => {
 });
 
 iniciar();
+
+console.log("AMBIENTE:", process.env.ENVIRONMENT);
 
 app.listen(PORT, () => {
   console.log(`Servidor No Ar. Porta ${PORT}`);

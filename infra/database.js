@@ -22,10 +22,7 @@ if (process.env.PORT) {
 }
 
 module.exports = db;
-/*
-//interno
-postgresql://postgres:PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx@postgres.railway.internal:5432/railway
-//web
+/*//web
 postgresql://postgres:PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx@monorail.proxy.rlwy.net:34218/railway
 
 

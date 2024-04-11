@@ -50,7 +50,7 @@ exports.getTarefas = function (params) {
 
     if (params.orderby == "") orderby = "tarefa.id_empresa,tarefa.inicial";
     if (params.orderby == "Código")
-      orderby = "tarefa.id_empresa,tarefa.inicial";
+      orderby = "tarefa.id_empresa,tarefa.inicial desc";
 
     if (orderby != "") orderby = " order by " + orderby;
     if (params.id_empresa !== 0) {
