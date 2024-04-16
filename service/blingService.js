@@ -75,7 +75,7 @@ exports.getRefreshToken = async function (emp) {
   }
 };
 
-exports.getProdutoFullById = async function (id_produto) {
+exports.getProdutoFullById = async function (emp, id_produto) {
   let lista = {};
 
   ////console.log(`params: ${id_produto}`)
@@ -89,9 +89,12 @@ exports.getProdutoFullById = async function (id_produto) {
     },
   };
 
-  response = await axios(options);
-
-  return response.data.data;
+  try {
+    response = await axios(options);
+    return response.data.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
 exports.getProdutoFullByCodigo = async function (id_produto) {
@@ -204,7 +207,6 @@ exports.getListaWork = async function (emp, page) {
 
   try {
     let lista = await this.getProdutoSimpleByIds(idProdutos, emp, page);
-    //console.log("getProdutoSimpleByIds =>", lista);
     if (lista.length == 0) {
       return workList;
     } else {
@@ -212,11 +214,12 @@ exports.getListaWork = async function (emp, page) {
         workList.push({
           id: bling.id,
           nome: bling.nome,
-          codigo: bling.codigo,
+          codigo: bling.codigo == "" ? bling.id : bling.codigo,
           preco: bling.preco,
           id_deposito: emp.id_deposito,
           saldo_bling: 0,
           saldo_chg: 0,
+          sem_codigo: bling.codigo == "" ? "S" : "N",
         });
       });
       return workList;
@@ -324,14 +327,19 @@ exports.sincronizacao = async function (id_empresa) {
       idsProdutos = [];
       codigoProdutos = [];
       listaWork.forEach((produto) => {
-        idsProdutos.push(produto.id);
-        codigoProdutos.push({ codigo: produto.codigo });
+        if (produto.sem_codigo == "S") {
+          console.log("Produto Vazio: ", produto.id, produto.codigo);
+        } else {
+          idsProdutos.push(produto.id);
+          codigoProdutos.push({ codigo: produto.codigo });
+        }
       });
-      //console.log("", idsProdutos);
+      console.log("", idsProdutos);
       console.log("BUSCAR SALDOS BLING");
       const saldosBling = await this.getSaldos(idsProdutos, emp);
+      //console.log("SALDOS BLING:", saldosBling);
       console.log("BUSCAR SALDOS CHG DOS SEGUINTES CODIGOS: ");
-      //console.log(codigoProdutos);
+      console.log(codigoProdutos);
       try {
         saldosCHG = await chgSrv.getProdutoByCodigoArray(emp, codigoProdutos);
       } catch (error) {
@@ -352,28 +360,28 @@ exports.sincronizacao = async function (id_empresa) {
       //}
       //console.log("SALDOS CHG ENCONTRADOS!", saldosCHG);
       listaWork.forEach((item) => {
-        //console.log("item", item);
-        var bling = saldosBling.filter((x) => x.produto.id === item.id);
-        if (bling) {
-          //console.log("bling", bling);
-          //console.log("bling.produto", bling[0].produto.id);
-          item.saldo_bling = bling[0].saldoFisicoTotal;
-        }
-        var chg = saldosCHG.filter((x) => x.codigo === item.codigo);
-        if (chg) {
-          if (typeof chg[0].estoque !== "undefined") {
-            item.saldo_chg = chg[0].estoque;
-          } else {
-            item.saldo_chg = -999999;
+        if (item.sem_codigo == "N") {
+          var bling = saldosBling.filter((x) => x.produto.id === item.id);
+          if (bling) {
+            //console.log("bling", bling);
+            //console.log("bling.produto", bling[0].produto.id);
+            item.saldo_bling = bling[0].saldoFisicoTotal;
           }
-          //console.log("bling - chg", item.saldo_bling, item.saldo_chg);
+          var chg = saldosCHG.filter((x) => x.codigo === item.codigo);
+          if (chg) {
+            if (typeof chg[0].estoque !== "undefined") {
+              item.saldo_chg = chg[0].estoque;
+            } else {
+              item.saldo_chg = -999999;
+            }
+            //console.log("bling - chg", item.saldo_bling, item.saldo_chg);
+          }
         }
       });
       console.log("RESULTADOS");
-      processados.clearProcessados();
       tarefa.final = new Date().toLocaleString("pt-BR");
       for (const [index, dado] of listaWork.entries()) {
-        if (dado.saldo_bling != dado.saldo_chg) {
+        if (dado.sem_codigo == "N" && dado.saldo_bling != dado.saldo_chg) {
           if (dado.saldo_chg == -999999) {
             const processado = {
               id_empresa: emp.id,
@@ -387,23 +395,14 @@ exports.sincronizacao = async function (id_empresa) {
               user_update: 0,
             };
             tarefa.qtd_erro = tarefa.qtd_erro + 1;
-            await processadoSrv.insertProcessado(processado);
-            processados.addProcessados({
-              id_empresa: emp.id,
-              id_tarefa: tarefa.id,
-              codigo: dado.codigo,
-              descricao: dado.nome,
-              saldo_bling: dado.saldo_bling,
-              saldo_chg: "",
-              ocorrencia: "Produto Não Encontrado Na CHG",
-            });
-            console.log(
-              "Produto - ",
-              dado.id,
-              dado.codigo,
-              dado.nome,
-              "Produto Não Encontrado Na CHG"
-            );
+            //await processadoSrv.insertProcessado(processado);
+            //console.log(
+            //  "Produto - ",
+            //  dado.id,
+            //  dado.codigo,
+            //  dado.nome,
+            //  "Produto Não Encontrado Na CHG"
+            //);
           } else {
             const processado = {
               id_empresa: emp.id,
@@ -416,18 +415,7 @@ exports.sincronizacao = async function (id_empresa) {
               user_insert: 99,
               user_update: 0,
             };
-            await processadoSrv.insertProcessado(processado);
-            processados.addProcessados({
-              id_empresa: emp.id,
-              id_tarefa: 0,
-              codigo: dado.codigo,
-              descricao: dado.nome,
-              saldo_bling: dado.saldo_bling,
-              saldo_chg: dado.saldo_chg,
-              ocorrencia: `Saldo Alterado Para ${dado.saldo_chg}.`,
-              user_insert: 99,
-              user_update: 0,
-            });
+            //await processadoSrv.insertProcessado(processado);
             //console.log(
             //    "Produto - ",
             //    dado.id,
@@ -448,27 +436,20 @@ exports.sincronizacao = async function (id_empresa) {
             contador++;
           }
         } else {
-          const processado = {
-            id_empresa: emp.id,
-            id_tarefa: tarefa.id,
-            codigo: dado.codigo,
-            descricao: dado.nome,
-            saldo_bling: dado.saldo_bling,
-            saldo_chg: dado.saldo_chg,
-            ocorrencia: `Saldo NÃO ALTERADO!.`,
-            user_insert: 99,
-            user_update: 0,
-          };
-          await processadoSrv.insertProcessado(processado);
-          processados.addProcessados({
-            id_empresa: emp.id,
-            id_tarefa: 0,
-            codigo: dado.codigo,
-            descricao: dado.nome,
-            saldo_bling: dado.saldo_bling,
-            saldo_chg: dado.saldo_chg,
-            ocorrencia: `Saldo NÃO ALTERADO!}.`,
-          });
+          if (dado.sem_codigo == "N") {
+            const processado = {
+              id_empresa: emp.id,
+              id_tarefa: tarefa.id,
+              codigo: dado.codigo,
+              descricao: dado.nome,
+              saldo_bling: dado.saldo_bling,
+              saldo_chg: dado.saldo_chg,
+              ocorrencia: `Saldo NÃO ALTERADO!.`,
+              user_insert: 99,
+              user_update: 0,
+            };
+            //await processadoSrv.insertProcessado(processado);
+          }
         }
       }
     }

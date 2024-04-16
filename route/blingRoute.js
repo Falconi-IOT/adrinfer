@@ -160,28 +160,41 @@ router.get("/api/bling/getcode", function (req, response) {
     });
 });
 
-router.get("/api/bling/getprodutos/:id_produto", function (req, response) {
-  console.log(lixo);
-  const options = {
-    url: `https://www.bling.com.br/Api/v3/produtos/${req.params.id_produto}`,
-    method: "get",
-    headers: {
-      "content-type": "application/json",
-      Authorization: `Bearer ${variaveis.getAcessToken()}}`,
-    },
-  };
+router.get(
+  "/api/bling/getProdutoFullById/:id_empresa/:id_produto",
+  async function (req, response) {
+    const id_empresa = req.params.id_empresa;
+    const id_produto = req.params.id_produto;
+    let emp = "";
 
-  axios(options)
-    .then(function (res) {
-      const retorno = res.data.data;
+    try {
+      emp = await empresaSrv.getEmpresa(id_empresa);
+    } catch (error) {
+      console.log(error);
+      response.status(404).json({ message: "Empresa Não Encontrada!" });
+
+      return;
+    }
+    try {
+      const retorno = await blingSrv.getProdutoFullById(emp, id_produto);
       response.status(200).json(retorno);
-    })
-    .catch(function (err) {
-      console.log("error = " + err);
-      const retorno = { message: err.message };
-      response.status(200).json(retorno);
-    });
-});
+    } catch (error) {
+      if (error.response) {
+        console.log(error.response.data);
+        console.log(error.response.status);
+        res.status(200).json(error.response.data);
+      } else {
+        if (err.name == "MyExceptionDB") {
+          res.status(409).json(err);
+        } else {
+          res
+            .status(500)
+            .json({ erro: "BAK-END", tabela: "empresa", message: err.message });
+        }
+      }
+    }
+  }
+);
 
 router.get("/api/bling/getprodutos", function (req, response) {
   const options = {
