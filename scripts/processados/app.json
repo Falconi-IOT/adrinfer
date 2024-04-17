@@ -43,6 +43,15 @@
                         "validacao": []
                     },
                     {
+                        "name": "seq",
+                        "type": "serial",
+                        "length": 0,
+                        "precision": 0,
+                        "nulo": "N",
+                        "padrao": "",
+                        "validacao": []
+                    },
+                    {
                         "name": "descricao",
                         "type": "varchar",
                         "length": 150,
@@ -107,6 +116,9 @@
                     },
                     {
                         "key": "codigo"
+                    },
+                    {
+                        "key": "seq"
                     }
                 ],
                 "variables": {
@@ -133,6 +145,13 @@
                             "name": "codigo",
                             "filtro": "S",
                             "atividador": " !== '' ",
+                            "tipo": "string",
+                            "padrao": ""
+                        },
+                        {
+                            "name": "sequencia",
+                            "filtro": "S",
+                            "atividador": " !==  0 ",
                             "tipo": "number",
                             "padrao": ""
                         },
@@ -176,12 +195,12 @@
                 "orderby": [{
                         "label": "",
                         "comparativo": " != '' ",
-                        "key": "proce.id_empresa,proce.id_tarega,proce.codigo"
+                        "key": "proce.id_empresa,proce.id_tarega,proce.codigo,proce.seq"
                     },
                     {
                         "label": "Código",
                         "comparativo": " != 0 ",
-                        "key": "proce.id_empresa,proce.id_tarefa,proce.codigo"
+                        "key": "proce.id_empresa,proce.id_tarefa,proce.codigo,proce.seq"
                     }
                 ],
                 "tablespace": "Producao"

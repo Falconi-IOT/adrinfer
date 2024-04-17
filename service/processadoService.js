@@ -6,8 +6,8 @@ const erroDB = require('../util/userfunctiondb');
 const regras = require('../util/processadoRegra');
 const TABELA = 'PROCESSADOS';
 /* CRUD GET SERVICE */
-exports.getProcessado = async function(id_empresa,id_tarefa,codigo){
-	return processadoData.getProcessado(id_empresa,id_tarefa,codigo);
+exports.getProcessado = async function(id_empresa,id_tarefa,codigo,seq){
+	return processadoData.getProcessado(id_empresa,id_tarefa,codigo,seq);
 };
 /* CRUD GET ALL SERVICE */
 exports.getProcessados = async function(params){
@@ -39,10 +39,10 @@ catch (err)
 }
  };
 //* CRUD - DELETE - SERVICE */
- exports.deleteProcessado = async function(id_empresa,id_tarefa,codigo){try 
+ exports.deleteProcessado = async function(id_empresa,id_tarefa,codigo,seq){try 
 {
-	await  regras.processado_Exclusao(id_empresa,id_tarefa,codigo);
-	return processadoData.deleteProcessado(id_empresa,id_tarefa,codigo);
+	await  regras.processado_Exclusao(id_empresa,id_tarefa,codigo,seq);
+	return processadoData.deleteProcessado(id_empresa,id_tarefa,codigo,seq);
 }
 catch (err)
 { 

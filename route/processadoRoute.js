@@ -5,9 +5,9 @@ const router = express.Router();
 const processadoSrv = require('../service/processadoService');
 
 /* ROTA GETONE processado */
-router.get("/api/processado/:id_empresa/:id_tarefa/:codigo",async function(req, res) {try 
+router.get("/api/processado/:id_empresa/:id_tarefa/:codigo/:seq",async function(req, res) {try 
 	{
-		const lsLista = await processadoSrv.getProcessado(req.params.id_empresa,req.params.id_tarefa,req.params.codigo);
+		const lsLista = await processadoSrv.getProcessado(req.params.id_empresa,req.params.id_tarefa,req.params.codigo,req.params.seq);
 		if (lsLista == null) 
 		{
 			res.status(409).json({ message: 'Processado Não Encontrada.' });
@@ -103,9 +103,9 @@ catch (err)
 	}
 })
 /* ROTA DELETE processado */
-router.delete("/api/processado/:id_empresa/:id_tarefa/:codigo",async function(req, res) {try 
+router.delete("/api/processado/:id_empresa/:id_tarefa/:codigo/:seq",async function(req, res) {try 
 	{
-		await processadoSrv.deleteProcessado(req.params.id_empresa,req.params.id_tarefa,req.params.codigo);		res.status(200).json({ message: 'Processado Excluído Com Sucesso!' });
+		await processadoSrv.deleteProcessado(req.params.id_empresa,req.params.id_tarefa,req.params.codigo,req.params.seq);		res.status(200).json({ message: 'Processado Excluído Com Sucesso!' });
 }
 catch (err)
 	{
@@ -124,7 +124,8 @@ router.post("/api/processados",async function(req, res) {/*
 	{
 		"id_empresa":0, 
 		"id_tarefa":0, 
-		"codigo":, 
+		"codigo":"", 
+		"sequencia":, 
 		"pagina":0, 
 		"tamPagina":50, 
 		"contador":"N", 

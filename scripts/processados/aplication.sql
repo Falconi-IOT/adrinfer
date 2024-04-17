@@ -14,13 +14,14 @@ CREATE TABLE Public.processados (
 		id_empresa int4  NOT NULL  , 
 		id_tarefa int4  NOT NULL  , 
 		codigo varchar(60)  NOT NULL  , 
+		seq serial  NOT NULL  , 
 		descricao varchar(150)  NOT NULL  , 
 		saldo_bling numeric(12,3)  NOT NULL  , 
 		saldo_chg numeric(12,3)  NOT NULL  , 
 		ocorrencia varchar(150)  NOT NULL  , 
 		user_insert int4  NOT NULL  , 
 		user_update int4  NOT NULL  , 
-		PRIMARY KEY(id_empresa,id_tarefa,codigo) 
+		PRIMARY KEY(id_empresa,id_tarefa,codigo,seq) 
 )
  WITHOUT OIDS 
  TABLESPACE "Producao" 
