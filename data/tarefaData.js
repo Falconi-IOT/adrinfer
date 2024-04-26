@@ -62,6 +62,10 @@ exports.getTarefas = function (params) {
       where += `tarefa.id = ${params.id} `;
     }
     if (where != "") where = " where " + where;
+
+    if (params.pagina != 0) {
+      paginacao = `limit ${params.tamPagina} offset ((${params.pagina} - 1) * ${params.tamPagina})`;
+    }
     if (params.contador == "S") {
       sqlStr = `SELECT COALESCE(COUNT(*),0) as total 
 				  FROM tarefas tarefa   
@@ -73,7 +77,7 @@ exports.getTarefas = function (params) {
 			   tarefa.id_empresa as  id_empresa  
 			,  tarefa.id as  id  
 			,  tarefa.id_usuario as  id_usuario  
-			,  tarefa.descricao as  descricao ,  
+			,  tarefa.descricao as  descricao   
 			,  tarefa.tempo  as tempo  
 			,  tarefa.inicial as inicial  
 			,  tarefa.final   as final   
@@ -87,6 +91,7 @@ exports.getTarefas = function (params) {
 			FROM tarefas tarefa   
 				 inner join empresas emp on emp.id = tarefa.id_empresa    
 			${where} 			${orderby} ${paginacao} `;
+
       return db.manyOrNone(strSql);
     }
   } else {

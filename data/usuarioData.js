@@ -56,6 +56,9 @@ exports.getUsuarios = function (params) {
       }
     }
     if (where != "") where = " where " + where;
+    if (params.pagina != 0) {
+      paginacao = `limit ${params.tamPagina} offset ((${params.pagina} - 1) * ${params.tamPagina})`;
+    }
     if (params.contador == "S") {
       sqlStr = `SELECT COALESCE(COUNT(*),0) as total 
 				  FROM usuarios usu      
