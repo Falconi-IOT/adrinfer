@@ -50,7 +50,7 @@ exports.getTarefas = function (params) {
 
     if (params.orderby == "") orderby = "tarefa.id_empresa,tarefa.inicial";
     if (params.orderby == "Código")
-      orderby = "tarefa.id_empresa,tarefa.inicial desc";
+      orderby = "tarefa.id_empresa,tarefa.id desc";
 
     if (orderby != "") orderby = " order by " + orderby;
     if (params.id_empresa !== 0) {
@@ -91,7 +91,7 @@ exports.getTarefas = function (params) {
 			FROM tarefas tarefa   
 				 inner join empresas emp on emp.id = tarefa.id_empresa    
 			${where} 			${orderby} ${paginacao} `;
-
+      //console.log("tarefas =>", strSql);
       return db.manyOrNone(strSql);
     }
   } else {
