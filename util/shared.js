@@ -1,156 +1,156 @@
-exports.adicionaZero = function (numero) {
-  if (numero <= 9) return "0" + numero;
-  else return "" + numero;
+exports.adicionaZero = function(numero) {
+    if (numero <= 9) return "0" + numero;
+    else return "" + numero;
 };
 
-exports.formatDate = function (date) {
-  if (date == null) {
-    return null;
-  }
+exports.formatDate = function(date) {
+    if (date == null) {
+        return null;
+    }
 
-  if (typeof date === "string") {
-    if (date.length > 10) date = date.substring(0, 10);
+    if (typeof date === "string") {
+        if (date.length > 10) date = date.substring(0, 10);
+        return date;
+    } else {
+        data = new Date(date);
+        return data.toLocaleDateString("pt-BR", { timeZone: "UTC" });
+    }
+};
+
+exports.formatDateYYYYMMDD = function(date) {
+    if (date == null) {
+        return null;
+    }
+    if (typeof date === "string") {
+        if (date.trim().length == 0) {
+            return "null";
+        }
+        if (date.length > 10) date = date.substring(0, 10);
+        date = date.split("/");
+        return "'" + [date[2], date[1], date[0]].join("-") + "'";
+    } else {
+        return date.yyyymmdd();
+    }
+};
+
+exports.IfNUllNoAspas = function(date) {
+    if (date == "null") return "null";
+
+    return `'${date}'`;
+};
+
+Date.prototype.yyyymmdd = function() {
+    var mm = this.getMonth() + 1; // getMonth() is zero-based
+    var dd = this.getDate();
+
+    return [
+        this.getFullYear(),
+        (mm > 9 ? "" : "0") + mm,
+        (dd > 9 ? "" : "0") + dd,
+    ].join("-");
+};
+
+exports.formatDateHour = function(date) {
     return date;
-  } else {
-    data = new Date(date);
-    return data.toLocaleDateString("pt-BR", { timeZone: "UTC" });
-  }
 };
 
-exports.formatDateYYYYMMDD = function (date) {
-  if (date == null) {
-    return null;
-  }
-  if (typeof date === "string") {
-    if (date.trim().length == 0) {
-      return "null";
+exports.excluirCaracteres = function(value) {
+    const searchRegExp = /'/g;
+    const retorno = value.replace(searchRegExp, "''");
+    return retorno;
+};
+
+exports.excluirVirgulasePontos = function(value) {
+    let retorno = "";
+    if (typeof value == "string") {
+        if (value.length == 0) return "0";
+        for (x = value.length - 1; x >= 0; x--) {
+            if (value[x] == "," || value[x] == ".") {
+                if (value[x] == ",") retorno = "." + retorno;
+                if (value[x] == ".") retorno = "" + retorno;
+            } else {
+                retorno = value[x] + retorno;
+            }
+        }
+    } else {
+        retorno = "0";
     }
-    if (date.length > 10) date = date.substring(0, 10);
-    date = date.split("/");
-    return "'" + [date[2], date[1], date[0]].join("-") + "'";
-  } else {
-    return date.yyyymmdd();
-  }
+    return retorno;
 };
 
-exports.IfNUllNoAspas = function (date) {
-  if (date == "null") return "null";
-
-  return `'${date}'`;
-};
-
-Date.prototype.yyyymmdd = function () {
-  var mm = this.getMonth() + 1; // getMonth() is zero-based
-  var dd = this.getDate();
-
-  return [
-    this.getFullYear(),
-    (mm > 9 ? "" : "0") + mm,
-    (dd > 9 ? "" : "0") + dd,
-  ].join("-");
-};
-
-exports.formatDateHour = function (date) {
-  return date;
-};
-
-exports.excluirCaracteres = function (value) {
-  const searchRegExp = /'/g;
-  const retorno = value.replace(searchRegExp, "''");
-  return retorno;
-};
-
-exports.excluirVirgulasePontos = function (value) {
-  let retorno = "";
-  if (typeof value == "string") {
-    if (value.length == 0) return "0";
-    for (x = value.length - 1; x >= 0; x--) {
-      if (value[x] == "," || value[x] == ".") {
-        if (value[x] == ",") retorno = "." + retorno;
-        if (value[x] == ".") retorno = "" + retorno;
-      } else {
-        retorno = value[x] + retorno;
-      }
+exports.NullOrText = function(value) {
+    if (value == null) {
+        return null;
+    } else {
+        return `'${value}'`;
     }
-  } else {
-    retorno = "0";
-  }
-  return retorno;
 };
 
-exports.NullOrText = function (value) {
-  if (value == null) {
-    return null;
-  } else {
-    return `'${value}'`;
-  }
-};
+exports.ValidarToken = function(emp) {
+    process.env.TZ = "America/Araguaina";
 
-exports.ValidarToken = function (emp) {
-  process.env.TZ = "America/Araguaina";
+    try {
+        const hoje = new Date(
+            Date.parse(
+                ConvertToYYYY_MM_DDTHH_mm_ssZ(new Date().toLocaleString("pt-BR"))
+            )
+        );
 
-  try {
-    const hoje = new Date(
-      Date.parse(
-        ConvertToYYYY_MM_DDTHH_mm_ssZ(new Date().toLocaleString("pt-BR"))
-      )
-    );
+        const validade = new Date(
+            Date.parse(ConvertToYYYY_MM_DDTHH_mm_ssZ(emp.access_token_date))
+        );
 
-    const validade = new Date(
-      Date.parse(ConvertToYYYY_MM_DDTHH_mm_ssZ(emp.access_token_date))
-    );
+        //console.log("Hoje ==>", hoje, " Validade => ", validade);
 
-    //console.log("Hoje ==>", hoje, " Validade => ", validade);
+        validade.setSeconds(validade.getSeconds() + emp.access_token_validade);
 
-    validade.setSeconds(validade.getSeconds() + emp.access_token_validade);
+        //console.log(" Validade Ajustada => ", validade);
 
-    //console.log(" Validade Ajustada => ", validade);
+        const tempo = difDate(hoje, validade);
 
-    const tempo = difDate(hoje, validade);
-
-    return tempo;
-  } catch (error) {
-    console.log(error);
-    return { dias: 0, horas: 0, minutos: 0, segundos: 0, minutos_restantes: 0 };
-  }
+        return tempo;
+    } catch (error) {
+        console.log(error);
+        return { dias: 0, horas: 0, minutos: 0, segundos: 0, minutos_restantes: 0 };
+    }
 };
 
 function ConvertToYYYY_MM_DDTHH_mm_ssZ(dataString) {
-  let retorno = "";
-  //console.log("Data Horiginal antes: ", dataString);
-  dataString = dataString.replace(",", "");
-  //console.log("Data Horiginal depois: ", dataString);
-  const data = dataString.substring(0, 10);
-  const hora = dataString.substring(11);
-  dataArray = data.split("/");
-  retorno =
-    dataArray[2] + "-" + dataArray[1] + "-" + dataArray[0] + "T" + hora + "Z";
-  return retorno;
+    let retorno = "";
+    //console.log("Data Horiginal antes: ", dataString);
+    dataString = dataString.replace(",", "");
+    //console.log("Data Horiginal depois: ", dataString);
+    const data = dataString.substring(0, 10);
+    const hora = dataString.substring(11);
+    dataArray = data.split("/");
+    retorno =
+        dataArray[2] + "-" + dataArray[1] + "-" + dataArray[0] + "T" + hora + "Z";
+    return retorno;
 }
 
 function difDate(date1, date2) {
-  try {
-    var agora = date1;
-    var vencimento = date2;
-    var diffMs = vencimento - agora; // milliseconds between now & vencimento
-    var diffDays = Math.floor(diffMs / 86400000); // days
-    var diffHrs = Math.floor((diffMs % 86400000) / 3600000); // hours
-    var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
-    var minutos_restantes = diffDays * 24 * 60 + diffHrs * 60 + diffMins;
-    return {
-      dias: diffDays,
-      horas: diffHrs,
-      minutos: diffMins,
-      minutos_restantes: minutos_restantes,
-    };
-  } catch (error) {
-    console.log(error);
-    return {
-      dias: 0,
-      horas: 0,
-      minutos: 0,
-      segundos: 0,
-      minutos_restantes: 0,
-    };
-  }
+    try {
+        var agora = date1;
+        var vencimento = date2;
+        var diffMs = vencimento - agora; // milliseconds between now & vencimento
+        var diffDays = Math.floor(diffMs / 86400000); // days
+        var diffHrs = Math.floor((diffMs % 86400000) / 3600000); // hours
+        var diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000); // minutes
+        var minutos_restantes = diffDays * 24 * 60 + diffHrs * 60 + diffMins;
+        return {
+            dias: diffDays,
+            horas: diffHrs,
+            minutos: diffMins,
+            minutos_restantes: minutos_restantes,
+        };
+    } catch (error) {
+        console.log(error);
+        return {
+            dias: 0,
+            horas: 0,
+            minutos: 0,
+            segundos: 0,
+            minutos_restantes: 0,
+        };
+    }
 }
