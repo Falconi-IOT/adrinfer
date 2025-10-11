@@ -99,10 +99,10 @@ app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "/application/index.html"));
 });
 
-iniciar();
+//iniciar();
 
 //console.log("AMBIENTE:", process.env.ENVIRONMENT);
 
 app.listen(PORT, () => {
-    console.log(`Servidor No Ar. Porta ${PORT}`);
+    console.log(`Servidor No Ar. Porta Deu Certo ${PORT}`);
 });
