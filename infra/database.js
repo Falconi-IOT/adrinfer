@@ -3,20 +3,21 @@ const pgp = require("pg-promise")();
 
 db = null;
 
+
 if (process.env.PORT) {
   db = pgp({
     user: "postgres",
-    password: "PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx",
-    host: "monorail.proxy.rlwy.net",
-    port: 34218,
+    password: "GEYgXQwbdKjCcGyCzOlsURrEULcvyNnP",
+    host: "caboose.proxy.rlwy.net",
+    port: 49441,
     database: "railway",
   });
 } else {
   db = pgp({
-    user: "postgres",
-    password: "PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx",
-    host: "monorail.proxy.rlwy.net",
-    port: 34218,
+     user: "postgres",
+    password: "GEYgXQwbdKjCcGyCzOlsURrEULcvyNnP",
+    host: "caboose.proxy.rlwy.net",
+    port: 49441,
     database: "railway",
   });
 }
