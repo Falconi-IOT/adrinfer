@@ -99,7 +99,7 @@ app.get("*", (req, res) => {
     res.sendFile(path.join(__dirname, "/application/index.html"));
 });
 
-//iniciar();
+iniciar();
 
 //console.log("AMBIENTE:", process.env.ENVIRONMENT);
 

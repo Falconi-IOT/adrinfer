@@ -7,6 +7,10 @@ exports.getChgCatalogo = async function(emp, pagina) {
 };
 
 exports.getProdutoByCodigo = async function(emp, codigo) {
+
+    
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
     const url = `https://loja.chg.com.br/api/catalogo/produto?key=${emp.key_chg}&produto=${codigo}&filial=CPS`;
     try {
         let response = await axios.get(url);
@@ -20,6 +24,11 @@ exports.getProdutoByCodigo = async function(emp, codigo) {
 };
 
 exports.getProdutoByCodigoArray = async function(emp, produtos) {
+
+
+    process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+
+
     let retorno = [];
     //console.log("Parametro funcao getProdutoByCodigoArray:", produtos)
     for (const [index, dado] of produtos.entries()) {
