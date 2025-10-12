@@ -492,6 +492,8 @@ exports.sincronizacao = async function(id_empresa) {
     tarefa.descricao = men;
     const tarefaAtualizada = await tarefaSrv.updateTarefa(tarefa);
     console.log(tarefaAtualizada);
+    const limpa = await tarefaSrv.limpa_historico(emp.id);
+    console.log("limpa de historico: ", limpa);
     return { message: men };
   } catch (error) {
     throw error;

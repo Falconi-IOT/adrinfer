@@ -171,3 +171,8 @@ exports.deleteTarefa = function (id_empresa, id) {
 		 where id_empresa = ${id_empresa} and  id = ${id}  `;
   return db.oneOrNone(strSql);
 };
+
+exports.limpa_historico = function (id_empresa) {
+  strSql = `select _retorno from limpa_historico(${id_empresa}); `;
+  return db.oneOrNone(strSql);
+};

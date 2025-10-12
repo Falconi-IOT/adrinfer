@@ -27,7 +27,8 @@ catch (err)
 }
  };
 //* CRUD - UPDATE - SERVICE */
- exports.updateTarefa = async function(tarefa){try 
+ exports.updateTarefa = async function(tarefa){
+try 
 {
 	await regras.tarefa_Alteracao(tarefa);
 	validacao.Validacao(TABELA,tarefa, parametros.tarefas());
@@ -39,10 +40,22 @@ catch (err)
 }
  };
 //* CRUD - DELETE - SERVICE */
- exports.deleteTarefa = async function(id_empresa,id){try 
+ exports.deleteTarefa = async function(id_empresa,id){
+try 
 {
 	await  regras.tarefa_Exclusao(id_empresa,id);
 	return tarefaData.deleteTarefa(id_empresa,id);
+}
+catch (err)
+{ 
+	throw new erroDB.UserException(err.erro, err); 
+}
+ };
+ 
+ exports.limpa_historico = async function(id_empresa){
+try 
+{
+	return tarefaData.limpa_historico(id_empresa);
 }
 catch (err)
 { 
