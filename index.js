@@ -104,5 +104,5 @@ iniciar();
 //console.log("AMBIENTE:", process.env.ENVIRONMENT);
 
 app.listen(PORT, () => {
-    console.log(`Servidor No Ar. Porta Deu Certo ${PORT}`);
+    console.log(`Servidor No Ar. Porta${PORT}`);
 });
