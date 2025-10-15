@@ -40,7 +40,7 @@ exports.getToken = async function(emp) {
         code: emp.code,
     };
     const options = {
-        url: "https://www.bling.com.br/Api/v3/oauth/token",
+        url: "https://api.bling.com.br/Api/v3/oauth/token",
         method: "POST",
         headers: {
             "content-type": "application/x-www-form-urlencoded",
@@ -65,7 +65,7 @@ exports.getRefreshToken = async function(emp) {
         refresh_token: emp.refresh_token.trim(),
     };
     const options = {
-        url: "https://www.bling.com.br/Api/v3/oauth/token",
+        url: "https://api.bling.com.br/Api/v3/oauth/token",
         method: "POST",
         headers: {
             "content-type": "application/x-www-form-urlencoded",
@@ -86,12 +86,9 @@ exports.getRefreshToken = async function(emp) {
 };
 
 exports.getProdutoFullById = async function(emp, id_produto) {
-    let lista = {};
-
-    ////console.log(`params: ${id_produto}`)
 
     const options = {
-        url: `https://www.bling.com.br/Api/v3/produtos/${id_produto}`,
+        url: `https://api.bling.com.br/Api/v3/produtos/${id_produto}`,
         method: "get",
         headers: {
             "content-type": "application/json",
@@ -113,7 +110,7 @@ exports.getProdutoFullByCodigo = async function(id_produto) {
     ////console.log(`params: ${id_produto}`)
 
     const options = {
-        url: `https://www.bling.com.br/Api/v3/produtos/${id_produto}`,
+        url: `https://api.bling.com.br/Api/v3/produtos/${id_produto}`,
         method: "get",
         headers: {
             "content-type": "application/json",
@@ -136,7 +133,7 @@ exports.getProdutoSimpleByIds = async function(id_produtos, emp, pagina) {
     }
 
     const options = {
-        url: `https://www.bling.com.br/Api/v3/produtos`,
+        url: `https://api.bling.com.br/Api/v3/produtos`,
         method: "get",
         params: {
             pagina: page,
@@ -166,7 +163,7 @@ exports.postAjustaSaldo = async function(
     let lista = {};
 
     const options = {
-        url: `https://www.bling.com.br/Api/v3/estoques`,
+        url: `https://api.bling.com.br/Api/v3/estoques`,
         method: "post",
         data: {
             deposito: {
@@ -197,7 +194,7 @@ exports.postAjustaSaldo = async function(
 
 exports.getSaldos = async function(produtos, emp) {
     const options = {
-        url: `https://www.bling.com.br/Api/v3/estoques/saldos/${emp.id_deposito.trim()}`,
+        url: `https://api.bling.com.br/Api/v3/estoques/saldos/${emp.id_deposito.trim()}`,
         method: "get",
         params: { idsProdutos: produtos },
         headers: {
@@ -244,7 +241,7 @@ exports.getListaWork = async function(emp, page) {
 
 exports.getCategorias = async function(emp) {
     const options = {
-        url: `https://www.bling.com.br/Api/v3/categorias/produtos`,
+        url: `https://api.bling.com.br/Api/v3/categorias/produtos`,
         method: "get",
         headers: {
             "content-type": "application/json",
@@ -263,7 +260,7 @@ exports.getCategorias = async function(emp) {
 
 exports.getDepositos = async function(emp) {
     const options = {
-        url: `https://www.bling.com.br/Api/v3/depositos`,
+        url: `https://api.bling.com.br/Api/v3/depositos`,
         method: "get",
         headers: {
             "content-type": "application/json",
@@ -519,7 +516,7 @@ exports.getProdutoSimplesAllPages = async function (id_empresa) {
   try {
     while (page > 0) {
       const options = {
-        url: `https://www.bling.com.br/Api/v3/produtos`,
+        url: `https://api.bling.com.br/Api/v3/produtos`,
         method: "get",
         params: {
           pagina: page,
