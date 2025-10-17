@@ -101,7 +101,7 @@ app.get("*", (req, res) => {
 
 iniciar();
 
-//console.log("AMBIENTE:", process.env.ENVIRONMENT);
+console.log("AMBIENTE:", process.env.ENVIRONMENT);
 
 app.listen(PORT, () => {
     console.log(`Servidor No Ar. Porta${PORT}`);
