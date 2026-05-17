@@ -33,78 +33,43 @@ const convertSeconds = (seconds) => {
 };
 
 router.get("/api/bling/recebercode/:id_empresa", async function (req, res) {
-  let empresa = {};
-
   const id_empresa = req.params.id_empresa;
+  const code = req.query.code;
 
-  console.log(
-    `ENTREI Na recebercode ==> ${id_empresa} code: "${req.query.code}`
-  );
+  console.log(`Recebi code da empresa ${id_empresa}: ${code}`);
 
-  if (req.query.code) {
-    try {
-      try {
-        emp = await empresaSrv.getEmpresa(id_empresa);
+  if (!code) {
+    return res.status(400).json({ message: "Não recebi o código!" });
+  }
 
-        emp.code = req.query.code.trim();
-      } catch (error) {
-        throw error;
-      }
-      console.log("Emp.: ", emp);
-      try {
-        const token = await blingSrv.getToken(emp);
+  try {
+    // Busca empresa
+    const emp = await empresaSrv.getEmpresa(id_empresa);
+    emp.code = code.trim();
 
-        console.log("token", token);
+    // Troca code por token
+    const token = await blingSrv.getToken(emp);
 
-        emp.access_token = token.access_token;
+    console.log("Token recebido:", token);
 
-        emp.access_token_validade = token.expires_in;
+    // Salva tokens
+    emp.access_token = token.access_token;
+    emp.access_token_validade = token.expires_in;
+    emp.access_token_date = new Date().toISOString();
+    emp.refresh_token = token.refresh_token;
 
-        emp.access_token_date = new Date().toLocaleString("pt-BR");
+    await empresaSrv.updateEmpresa(emp);
 
-        emp.refresh_token = token.refresh_token;
+    return res.status(200).json({ code });
+  } catch (error) {
+    console.log("Erro ao processar o código recebido:", error);
+    console.log("Erro:", error.response?.data || error.message);
 
-        const empAlterada = await empresaSrv.updateEmpresa(emp);
-
-        console.log(empAlterada);
-
-        res.status(200).json(req.query.code);
-      } catch (error) {
-        if (error.response) {
-          console.log(error.response.data);
-          console.log(error.response.status);
-          res.status(200).json({ message: error.response.data });
-        } else {
-          if (error.name == "MyExceptionDB") {
-            res.status(409).json(error);
-          } else {
-            res.status(500).json({
-              erro: "BAK-END",
-              tabela: "Empresa",
-              message: error.message,
-            });
-          }
-        }
-      }
-    } catch (error) {
-      if (error.response) {
-        console.log(error.response.data);
-        console.log(error.response.status);
-        res.status(200).json({ message: error.response.data });
-      } else {
-        if (error.name == "MyExceptionDB") {
-          res.status(409).json(error);
-        } else {
-          res.status(500).json({
-            erro: "BAK-END",
-            tabela: "Empresa",
-            message: error.message,
-          });
-        }
-      }
-    }
-  } else {
-    res.status(200).json({ message: "Não Recebi O Código!" });
+    return res.status(500).json({
+      erro: "BACK-END",
+      tabela: "Empresa",
+      message: error.response?.data || error.message,
+    });
   }
 });
 
@@ -115,8 +80,6 @@ router.get("/api/bling/token", async function (req, response) {
     response.status(200).json(retorno);
   } catch (error) {
     if (error.response) {
-      console.log(error.response.data);
-      console.log(error.response.status);
       response.status(200).json({ message: error.response.status });
     }
   }

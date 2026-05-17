@@ -1,0 +1,6 @@
+Atenção no momento que eu desenvolvi o link de convite estava errado, por isso usei este.
+Estes são os dados da homologação
+https://www.bling.com.br/oauth/authorize?response_type=code&client_id=29f09b00d5908efd9d2d0edceb215ba85adad31e&redirect_uri=http://localhost:3000/api/bling/recebercode/1&state=chg_homolog
+
+
+https://www.bling.com.br/oauth/authorize?response_type=code&client_id=29f09b00d5908efd9d2d0edceb215ba85adad31e&redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fbling%2Frecebercode%2F1&state=chg_homolog

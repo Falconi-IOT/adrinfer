@@ -13,7 +13,7 @@ exports.setAgendamento = function (id_empresa, intervalo, imediato) {
   const task = new AsyncTask(
     `Sincronismo Empresa ${id_empresa}`,
     () => {
-      return srvBling.sincronizacao(id_empresa).then((result) => {
+      return srvBling.sincronizacaov2(id_empresa).then((result) => {
         console.log(
           `empresa ${id_empresa} intervalo ${intervalo} imediato ${imediato}`
         );
