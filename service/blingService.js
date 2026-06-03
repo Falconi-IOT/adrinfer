@@ -1,4 +1,6 @@
 const axios = require("axios");
+const axiosRetry = require("axios-retry");
+const https = require("https");
 const agendas = require("../global/agendas.js");
 const bling = require("../util/bling.js");
 const credentials = require("../util/credentials.js");
@@ -12,216 +14,227 @@ const qs = require("querystring");
 
 process.env.TZ = "America/Araguaina";
 
+const agent = new https.Agent({
+  keepAlive: true,
+});
+
 async function Pausa() {
-    await sleep(4000);
+  await sleep(4000);
 }
 
 async function sleep(ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
 const convertSegToHorario = (seconds) => {
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const remainingSeconds = seconds % 60;
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
 
-    const hourString = `${shared.adicionaZero(hours)}`;
-    const minuteString = `${shared.adicionaZero(minutes)}`;
-    const secondString = `${shared.adicionaZero(remainingSeconds | 0)}`; // trunca as decimais
+  const hourString = `${shared.adicionaZero(hours)}`;
+  const minuteString = `${shared.adicionaZero(minutes)}`;
+  const secondString = `${shared.adicionaZero(remainingSeconds | 0)}`; // trunca as decimais
 
-    return `${hourString}:${minuteString}:${secondString}`;
+  return `${hourString}:${minuteString}:${secondString}`;
 };
 
-exports.getToken_old = async function(emp) {
-    const data = {
-        grant_type: "authorization_code",
-        code: emp.code,
-        redirect_uri: "http://localhost:3000/api/bling/recebercode/1",
-    };
+exports.getToken_old = async function (emp) {
+  const data = {
+    grant_type: "authorization_code",
+    code: emp.code,
+    redirect_uri: "http://localhost:3000/api/bling/recebercode/1",
+  };
 
-    const options = {
-        url: "https://api.bling.com.br/oauth/token",
-        method: "POST",
-        headers: {
-            "content-type": "application/x-www-form-urlencoded",
-            Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
-            Accept: "application/json",
-        },
-        data: qs.stringify(data),
-    };
+  const options = {
+    url: "https://api.bling.com.br/oauth/token",
+    method: "POST",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
+      Accept: "application/json",
+    },
+    data: qs.stringify(data),
+    httpsAgent: agent,
+  };
 
-    console.log("HEADER FINAL:", options.headers);
-    console.log("HTTP_PROXY:", process.env.HTTP_PROXY);
-    console.log("HTTPS_PROXY:", process.env.HTTPS_PROXY);
-    console.log("http_proxy:", process.env.http_proxy);
-    console.log("https_proxy:", process.env.https_proxy);
+  console.log("HEADER FINAL:", options.headers);
+  console.log("HTTP_PROXY:", process.env.HTTP_PROXY);
+  console.log("HTTPS_PROXY:", process.env.HTTPS_PROXY);
+  console.log("http_proxy:", process.env.http_proxy);
+  console.log("https_proxy:", process.env.https_proxy);
 
-    axios.interceptors.request.use((req) => {
-        console.log("URL FINAL:", req.url);
-        console.log("BASEURL:", req.baseURL);
-        console.log("FULL CONFIG:", req);
-        return req;
-    });
-    const retorno = await axios(options);
-    return retorno.data;
+  axios.interceptors.request.use((req) => {
+    console.log("URL FINAL:", req.url);
+    console.log("BASEURL:", req.baseURL);
+    console.log("FULL CONFIG:", req);
+    return req;
+  });
+  const retorno = await axios(options);
+  return retorno.data;
 };
 
-exports.getToken = async function(emp) {
-    const data = {
-        grant_type: "authorization_code",
-        code: emp.code,
-        redirect_uri: "http://localhost:3000/api/bling/recebercode/1",
-    };
+exports.getToken = async function (emp) {
+  const data = {
+    grant_type: "authorization_code",
+    code: emp.code,
+    redirect_uri: "http://localhost:3000/api/bling/recebercode/1",
+  };
 
-    const options = {
-        url: "https://www.bling.com.br/Api/v3/oauth/token",
-        method: "POST",
-        headers: {
-            "content-type": "application/x-www-form-urlencoded",
-            Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
-            Accept: "application/json",
-        },
-        data: qs.stringify(data),
-    };
+  const options = {
+    url: "https://www.bling.com.br/Api/v3/oauth/token",
+    method: "POST",
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
+      Accept: "application/json",
+    },
+    data: qs.stringify(data),
+    httpsAgent: agent,
+  };
 
-    const retorno = await axios(options);
-    console.log("retorno getToken:", retorno.data);
-    return retorno.data;
+  const retorno = await axios(options);
+  console.log("retorno getToken:", retorno.data);
+  return retorno.data;
 };
 
-exports.getRefreshToken = async function(emp) {
-    const data = {
-        grant_type: "refresh_token",
-        refresh_token: emp.refresh_token.trim(),
-    };
-    const options = {
-        url: "https://api.bling.com.br/Api/v3/oauth/token",
-        method: "POST",
-        headers: {
-            "content-type": "application/x-www-form-urlencoded",
-            Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
-            Accept: "1.0",
-        },
-        data: qs.stringify(data),
-    };
+exports.getRefreshToken = async function (emp) {
+  const data = {
+    grant_type: "refresh_token",
+    refresh_token: emp.refresh_token.trim(),
+  };
+  const options = {
+    url: "https://api.bling.com.br/Api/v3/oauth/token",
+    method: "POST",
+    httpsAgent: agent,
+    headers: {
+      "content-type": "application/x-www-form-urlencoded",
+      Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
+      Accept: "1.0",
+    },
+    data: qs.stringify(data),
+  };
 
-    try {
-        const response = await axios(options);
-        const retorno = response.data;
-        console.log("retorno refreshcode", retorno);
-        return retorno;
-    } catch (err) {
-        throw err;
-    }
+  try {
+    const response = await axios(options);
+    const retorno = response.data;
+    console.log("retorno refreshcode", retorno);
+    return retorno;
+  } catch (err) {
+    throw err;
+  }
 };
 
-exports.getProdutoFullById = async function(emp, id_produto) {
-    const options = {
-        url: `https://api.bling.com.br/Api/v3/produtos/${id_produto}`,
-        method: "get",
-        headers: {
-            "content-type": "application/json",
-            Authorization: `Bearer ${emp.access_token.trim()}`,
-        },
-    };
+exports.getProdutoFullById = async function (emp, id_produto) {
+  const options = {
+    url: `https://api.bling.com.br/Api/v3/produtos/${id_produto}`,
+    method: "get",
+    httpsAgent: agent,
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${emp.access_token.trim()}`,
+    },
+  };
 
-    try {
-        response = await axios(options);
-        return response.data.data;
-    } catch (error) {
-        throw error;
-    }
-};
-
-exports.getProdutoFullByCodigo = async function(id_produto) {
-    let lista = {};
-
-    ////console.log(`params: ${id_produto}`)
-
-    const options = {
-        url: `https://api.bling.com.br/Api/v3/produtos/${id_produto}`,
-        method: "get",
-        headers: {
-            "content-type": "application/json",
-            Authorization: `Bearer ${emp.access_token.trim()}`,
-        },
-    };
-
+  try {
     response = await axios(options);
-
     return response.data.data;
+  } catch (error) {
+    throw error;
+  }
 };
 
-exports.getProdutoSimpleByIds = async function(id_produtos, emp, pagina) {
-    let page = 1;
+exports.getProdutoFullByCodigo = async function (id_produto) {
+  let lista = {};
 
-    if (typeof pagina == "undefined") {
-        page = 1;
-    } else {
-        page = pagina;
-    }
+  ////console.log(`params: ${id_produto}`)
 
-    const options = {
-        url: `https://api.bling.com.br/Api/v3/produtos`,
-        method: "get",
-        params: {
-            pagina: page,
-            limite: 100,
-            idProdutos: id_produtos,
-            idCategoria: emp.id_categoria,
-        },
-        headers: {
-            "content-type": "application/json",
-            Authorization: `Bearer ${emp.access_token.trim()}`,
-        },
-    };
+  const options = {
+    url: `https://api.bling.com.br/Api/v3/produtos/${id_produto}`,
+    method: "get",
+    httpsAgent: agent,
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${emp.access_token.trim()}`,
+    },
+  };
 
-    response = await axios(options);
+  response = await axios(options);
 
-    return response.data.data;
+  return response.data.data;
 };
 
-exports.postAjustaSaldo = async function(
-    id_deposito,
-    id_produto,
-    qtd,
-    preco,
-    histo,
-    emp,
+exports.getProdutoSimpleByIds = async function (id_produtos, emp, pagina) {
+  let page = 1;
+
+  if (typeof pagina == "undefined") {
+    page = 1;
+  } else {
+    page = pagina;
+  }
+
+  const options = {
+    url: `https://api.bling.com.br/Api/v3/produtos`,
+    method: "get",
+    httpsAgent: agent,
+    params: {
+      pagina: page,
+      limite: 100,
+      idProdutos: id_produtos,
+      idCategoria: emp.id_categoria,
+    },
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${emp.access_token.trim()}`,
+    },
+  };
+
+  response = await axios(options);
+
+  return response.data.data;
+};
+
+exports.postAjustaSaldo = async function (
+  id_deposito,
+  id_produto,
+  qtd,
+  preco,
+  histo,
+  emp,
 ) {
-    let lista = {};
+  let lista = {};
 
-    const options = {
-        url: `https://api.bling.com.br/Api/v3/estoques`,
-        method: "post",
-        data: {
-            deposito: {
-                id: id_deposito,
-            },
-            operacao: "B",
-            produto: {
-                id: id_produto,
-            },
-            quantidade: qtd,
-            preco: preco,
-            custo: preco,
-            observacoes: histo,
-        },
-        headers: {
-            "content-type": "application/json",
-            Authorization: `Bearer ${emp.access_token.trim()}`,
-        },
-    };
+  const options = {
+    url: `https://api.bling.com.br/Api/v3/estoques`,
+    method: "post",
+    httpsAgent: agent,
+    data: {
+      deposito: {
+        id: id_deposito,
+      },
+      operacao: "B",
+      produto: {
+        id: id_produto,
+      },
+      quantidade: qtd,
+      preco: preco,
+      custo: preco,
+      observacoes: histo,
+    },
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${emp.access_token.trim()}`,
+    },
+  };
 
-    try {
-        response = await axios(options);
-        //console.log("Resposta ajuste de saldo:", response.data);
-        return response.data.data;
-    } catch (error) {
-        throw err;
-    }
+  try {
+    response = await axios(options);
+    //console.log("Resposta ajuste de saldo:", response.data);
+    return response.data.data;
+  } catch (error) {
+    throw err;
+  }
 };
 
 /* exports.getSaldos = async function (produtos, emp) {
@@ -244,317 +257,321 @@ exports.postAjustaSaldo = async function(
  */
 
 //versão IA
-exports.getSaldos = async function(produtos, emp) {
-    //console.log("getSaldos - produtos:", produtos);
+exports.getSaldos = async function (produtos, emp) {
+  //console.log("getSaldos - produtos:", produtos);
 
-    // 🔒 Proteção: se não tiver produtos, nem chama o Bling
-    if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
-        console.log("getSaldos - Nenhum produto informado, retornando vazio");
-        return [];
-    }
+  // 🔒 Proteção: se não tiver produtos, nem chama o Bling
+  if (!produtos || !Array.isArray(produtos) || produtos.length === 0) {
+    console.log("getSaldos - Nenhum produto informado, retornando vazio");
+    return [];
+  }
 
-    const options = {
-        url: "https://api.bling.com.br/Api/v3/estoques/saldos/" +
-            emp.id_deposito.trim(),
-        method: "get",
-        params: {
-            idsProdutos: produtos,
-        },
-        paramsSerializer: function(params) {
-            return params.idsProdutos
-                .map(function(id) {
-                    return "idsProdutos[]=" + id;
-                })
-                .join("&");
-        },
-        headers: {
-            "content-type": "application/json",
-            Authorization: "Bearer " + emp.access_token.trim(),
-        },
-    };
+  const options = {
+    url:
+      "https://api.bling.com.br/Api/v3/estoques/saldos/" +
+      emp.id_deposito.trim(),
+    method: "get",
+    httpsAgent: agent,
+    params: {
+      idsProdutos: produtos,
+    },
+    paramsSerializer: function (params) {
+      return params.idsProdutos
+        .map(function (id) {
+          return "idsProdutos[]=" + id;
+        })
+        .join("&");
+    },
+    headers: {
+      "content-type": "application/json",
+      Authorization: "Bearer " + emp.access_token.trim(),
+    },
+  };
 
-    try {
-        const response = await axios(options);
-        //console.log("getSaldos - resposta do Bling:", response.data.data);
-        return response.data.data;
-    } catch (err) {
-        const erroApi =
-            err.response && err.response.data ? err.response.data : err.message;
-        console.log("Erro getSaldos:", erroApi);
-        throw err;
-    }
+  try {
+    const response = await axios(options);
+    //console.log("getSaldos - resposta do Bling:", response.data.data);
+    return response.data.data;
+  } catch (err) {
+    const erroApi =
+      err.response && err.response.data ? err.response.data : err.message;
+    console.log("Erro getSaldos:", erroApi);
+    throw err;
+  }
 };
 
-exports.getListaWork = async function(emp, page) {
-    let workList = [];
+exports.getListaWork = async function (emp, page) {
+  let workList = [];
 
-    const idProdutos = [];
+  const idProdutos = [];
 
-    try {
-        let lista = await this.getProdutoSimpleByIds(idProdutos, emp, page);
-        if (lista.length == 0) {
-            return workList;
+  try {
+    let lista = await this.getProdutoSimpleByIds(idProdutos, emp, page);
+    if (lista.length == 0) {
+      return workList;
+    } else {
+      lista.forEach(async (bling) => {
+        workList.push({
+          id: bling.id,
+          nome: bling.nome,
+          codigo: bling.codigo == "" ? bling.id : bling.codigo,
+          preco: bling.preco,
+          id_deposito: emp.id_deposito,
+          saldo_bling: 0,
+          saldo_chg: 0,
+          sem_codigo: bling.codigo == "" ? "S" : "N",
+        });
+      });
+      return workList;
+    }
+  } catch (err) {
+    throw err;
+  }
+};
+
+exports.getCategorias = async function (emp) {
+  const options = {
+    url: `https://api.bling.com.br/Api/v3/categorias/produtos`,
+    method: "get",
+    httpsAgent: agent,
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${emp.access_token.trim()}`,
+    },
+  };
+
+  try {
+    const categorias = await axios(options);
+
+    return categorias.data.data;
+  } catch (err) {
+    throw err;
+  }
+};
+
+exports.getDepositos = async function (emp) {
+  const options = {
+    url: `https://api.bling.com.br/Api/v3/depositos`,
+    method: "get",
+    httpsAgent: agent,
+    headers: {
+      "content-type": "application/json",
+      Authorization: `Bearer ${emp.access_token.trim()}`,
+    },
+  };
+
+  try {
+    const depositos = await axios(options);
+
+    return depositos.data.data;
+  } catch (error) {
+    throw error;
+  }
+
+  return depositos;
+};
+
+exports.sincronizacao = async function (id_empresa) {
+  let idsProdutos = [];
+  let codigoProdutos = [];
+  let contador = 0;
+  let emp = {};
+  let tarefa = {};
+  let page = 0;
+  let listaWork = [];
+  let tentativas = 0;
+  const inicio = new Date();
+
+  try {
+    emp = await empresaSrv.getEmpresa(id_empresa);
+    tarefa = {
+      id_empresa: emp.id,
+      id: 0,
+      id_usuario: 99,
+      descricao: "Iniciando Processamento...Aguarde!",
+      tempo: "",
+      inicial: new Date().toLocaleString("pt-BR"),
+      final: new Date().toLocaleString("pt-BR"),
+      qtd_total: 0,
+      qtd_erro: 0,
+      status: 0,
+      descricao_erro: "",
+      user_insert: 99,
+      user_update: 0,
+    };
+    tarefa = await tarefaSrv.insertTarefa(tarefa);
+  } catch (error) {
+    throw error;
+  }
+
+  try {
+    const validade = shared.ValidarToken(emp);
+    if (validade.minutos_restantes <= 60) {
+      emp = await bling.getAtualizaToken(emp);
+    } else {
+      console.log("validade: ", validade);
+    }
+  } catch (error) {
+    throw error;
+  }
+
+  try {
+    console.log("BUSCAR LISTWORK");
+    while (page >= 0) {
+      page = page + 1;
+      listaWork = await this.getListaWork(emp, page);
+      if (listaWork.length == 0) {
+        page = -1;
+        continue;
+      }
+      console.log("Pagina ", page, " Tam ", listaWork.length);
+      tarefa.qtd_total += listaWork.length;
+      idsProdutos = [];
+      codigoProdutos = [];
+      listaWork.forEach((produto) => {
+        if (produto.sem_codigo == "S") {
+          console.log("Produto Vazio: ", produto.id, produto.codigo);
         } else {
-            lista.forEach(async(bling) => {
-                workList.push({
-                    id: bling.id,
-                    nome: bling.nome,
-                    codigo: bling.codigo == "" ? bling.id : bling.codigo,
-                    preco: bling.preco,
-                    id_deposito: emp.id_deposito,
-                    saldo_bling: 0,
-                    saldo_chg: 0,
-                    sem_codigo: bling.codigo == "" ? "S" : "N",
-                });
-            });
-            return workList;
+          idsProdutos.push(produto.id);
+          codigoProdutos.push({ codigo: produto.codigo });
         }
-    } catch (err) {
-        throw err;
-    }
-};
-
-exports.getCategorias = async function(emp) {
-    const options = {
-        url: `https://api.bling.com.br/Api/v3/categorias/produtos`,
-        method: "get",
-        headers: {
-            "content-type": "application/json",
-            Authorization: `Bearer ${emp.access_token.trim()}`,
-        },
-    };
-
-    try {
-        const categorias = await axios(options);
-
-        return categorias.data.data;
-    } catch (err) {
-        throw err;
-    }
-};
-
-exports.getDepositos = async function(emp) {
-    const options = {
-        url: `https://api.bling.com.br/Api/v3/depositos`,
-        method: "get",
-        headers: {
-            "content-type": "application/json",
-            Authorization: `Bearer ${emp.access_token.trim()}`,
-        },
-    };
-
-    try {
-        const depositos = await axios(options);
-
-        return depositos.data.data;
-    } catch (error) {
-        throw error;
-    }
-
-    return depositos;
-};
-
-exports.sincronizacao = async function(id_empresa) {
-        let idsProdutos = [];
-        let codigoProdutos = [];
-        let contador = 0;
-        let emp = {};
-        let tarefa = {};
-        let page = 0;
-        let listaWork = [];
-        let tentativas = 0;
-        const inicio = new Date();
-
+      });
+      //console.log("", idsProdutos);
+      console.log("BUSCAR SALDOS BLING");
+      const saldosBling = await this.getSaldos(idsProdutos, emp);
+      //console.log("SALDOS BLING:", saldosBling);
+      return;
+      console.log("BUSCAR SALDOS CHG DOS SEGUINTES CODIGOS: ");
+      //console.log(codigoProdutos);
+      tentativas = 1;
+      while (tentativas <= 3) {
         try {
-            emp = await empresaSrv.getEmpresa(id_empresa);
-            tarefa = {
-                id_empresa: emp.id,
-                id: 0,
-                id_usuario: 99,
-                descricao: "Iniciando Processamento...Aguarde!",
-                tempo: "",
-                inicial: new Date().toLocaleString("pt-BR"),
-                final: new Date().toLocaleString("pt-BR"),
-                qtd_total: 0,
-                qtd_erro: 0,
-                status: 0,
-                descricao_erro: "",
-                user_insert: 99,
-                user_update: 0,
-            };
-            tarefa = await tarefaSrv.insertTarefa(tarefa);
+          saldosCHG = await chgSrv.getProdutoByCodigoArray(emp, codigoProdutos);
+          tentativas = 4;
+          continue;
         } catch (error) {
-            throw error;
-        }
-
-        try {
-            const validade = shared.ValidarToken(emp);
-            if (validade.minutos_restantes <= 60) {
-                emp = await bling.getAtualizaToken(emp);
-            } else {
-                console.log("validade: ", validade);
-            }
-        } catch (error) {
-            throw error;
-        }
-
-        try {
-            console.log("BUSCAR LISTWORK");
-            while (page >= 0) {
-                page = page + 1;
-                listaWork = await this.getListaWork(emp, page);
-                if (listaWork.length == 0) {
-                    page = -1;
-                    continue;
-                }
-                console.log("Pagina ", page, " Tam ", listaWork.length);
-                tarefa.qtd_total += listaWork.length;
-                idsProdutos = [];
-                codigoProdutos = [];
-                listaWork.forEach((produto) => {
-                    if (produto.sem_codigo == "S") {
-                        console.log("Produto Vazio: ", produto.id, produto.codigo);
-                    } else {
-                        idsProdutos.push(produto.id);
-                        codigoProdutos.push({ codigo: produto.codigo });
-                    }
-                });
-                //console.log("", idsProdutos);
-                console.log("BUSCAR SALDOS BLING");
-                const saldosBling = await this.getSaldos(idsProdutos, emp);
-                //console.log("SALDOS BLING:", saldosBling);
-                return;
-                console.log("BUSCAR SALDOS CHG DOS SEGUINTES CODIGOS: ");
-                //console.log(codigoProdutos);
-                tentativas = 1;
-                while (tentativas <= 3) {
-                    try {
-                        saldosCHG = await chgSrv.getProdutoByCodigoArray(emp, codigoProdutos);
-                        tentativas = 4;
-                        continue;
-                    } catch (error) {
-                        console.log(`Falha Na API da CHG. Tentativa ${tentativas}`);
-                        tentativas++;
-                        await Pausa();
-                        if (tentativas > 3) {
-                            //fim
-                            const final = new Date();
-                            const tempo = final.getTime() - inicio.getTime();
-                            const segundos = tempo / 1000;
-                            tarefa.tempo = convertSegToHorario(segundos);
-                            tarefa.final = final.toLocaleString("pt-BR");
-                            tarefa.descricao = "Falha Na API da CHG.";
-                            await tarefaSrv.updateTarefa(tarefa);
-                            return { message: "Falha Na API da CHG." };
-                        }
-                    }
-                }
-                console.log("SALDOS CHG ENCONTRADOS:");
-                //for (const [index, dado] of saldosCHG.entries()) {
-                //    console.log("==>", dado);
-                //}
-                //console.log("SALDOS CHG ENCONTRADOS!", saldosCHG);
-                listaWork.forEach((item) => {
-                    if (item.sem_codigo == "N") {
-                        var bling = saldosBling.filter((x) => x.produto.id === item.id);
-                        if (bling) {
-                            //console.log("bling", bling);
-                            //console.log("bling.produto", bling[0].produto.id);
-                            item.saldo_bling = bling[0].saldoFisicoTotal;
-                        }
-                        var chg = saldosCHG.filter((x) => x.codigo === item.codigo);
-                        if (chg) {
-                            if (typeof chg[0].estoque !== "undefined") {
-                                item.saldo_chg = chg[0].estoque > 3 ? chg[0].estoque : 0;
-                            } else {
-                                item.saldo_chg = -999999;
-                            }
-                            //console.log("bling - chg", item.saldo_bling, item.saldo_chg);
-                        }
-                    }
-                });
-                console.log("RESULTADOS");
-                tarefa.final = new Date().toLocaleString("pt-BR");
-                for (const [index, dado] of listaWork.entries()) {
-                    if (dado.sem_codigo == "N" && dado.saldo_bling != dado.saldo_chg) {
-                        if (dado.saldo_chg == -999999) {
-                            const processado = {
-                                id_empresa: emp.id,
-                                id_tarefa: tarefa.id,
-                                codigo: dado.codigo,
-                                seq: 0,
-                                descricao: dado.nome,
-                                saldo_bling: dado.saldo_bling,
-                                saldo_chg: 0,
-                                ocorrencia: "Produto Não Encontrado Na CHG",
-                                user_insert: 99,
-                                user_update: 0,
-                            };
-                            tarefa.qtd_erro = tarefa.qtd_erro + 1;
-                            await processadoSrv.insertProcessado(processado);
-                            //console.log(
-                            //  "Produto - ",
-                            //  dado.id,
-                            //  dado.codigo,
-                            //  dado.nome,
-                            //  "Produto Não Encontrado Na CHG"
-                            //);
-                        } else {
-                            const processado = {
-                                id_empresa: emp.id,
-                                id_tarefa: tarefa.id,
-                                codigo: dado.codigo,
-                                seq: 0,
-                                descricao: dado.nome,
-                                saldo_bling: dado.saldo_bling,
-                                saldo_chg: dado.saldo_chg,
-                                ocorrencia: `Saldo Alterado Para ${dado.saldo_chg}.`,
-                                user_insert: 99,
-                                user_update: 0,
-                            };
-                            try {
-                                novoSaldo = await this.postAjustaSaldo(
-                                    dado.id_deposito,
-                                    dado.id,
-                                    dado.saldo_chg,
-                                    dado.preco,
-                                    "AJUSTE AUTOMÁTICO CHG",
-                                    emp,
-                                );
-                                await processadoSrv.insertProcessado(processado);
-                            } catch (error) {
-                                processado.ocorrencia = `Falha Na Atualização Do Saldo No Bling!.`;
-                                await processadoSrv.insertProcessado(processado);
-                            }
-                            //console.log("novoSaldo", novoSaldo);
-                            contador++;
-                        }
-                    } else {
-                        if (dado.sem_codigo == "N") {
-                            const processado = {
-                                id_empresa: emp.id,
-                                id_tarefa: tarefa.id,
-                                codigo: dado.codigo,
-                                seq: 0,
-                                descricao: dado.nome,
-                                saldo_bling: dado.saldo_bling,
-                                saldo_chg: dado.saldo_chg,
-                                ocorrencia: `Saldo NÃO ALTERADO!.`,
-                                user_insert: 99,
-                                user_update: 0,
-                            };
-                            await processadoSrv.insertProcessado(processado);
-                        }
-                    }
-                }
-            }
+          console.log(`Falha Na API da CHG. Tentativa ${tentativas}`);
+          tentativas++;
+          await Pausa();
+          if (tentativas > 3) {
             //fim
             const final = new Date();
             const tempo = final.getTime() - inicio.getTime();
             const segundos = tempo / 1000;
             tarefa.tempo = convertSegToHorario(segundos);
             tarefa.final = final.toLocaleString("pt-BR");
-            const men = `Fim Do Processamento. ${
+            tarefa.descricao = "Falha Na API da CHG.";
+            await tarefaSrv.updateTarefa(tarefa);
+            return { message: "Falha Na API da CHG." };
+          }
+        }
+      }
+      console.log("SALDOS CHG ENCONTRADOS:");
+      //for (const [index, dado] of saldosCHG.entries()) {
+      //    console.log("==>", dado);
+      //}
+      //console.log("SALDOS CHG ENCONTRADOS!", saldosCHG);
+      listaWork.forEach((item) => {
+        if (item.sem_codigo == "N") {
+          var bling = saldosBling.filter((x) => x.produto.id === item.id);
+          if (bling) {
+            //console.log("bling", bling);
+            //console.log("bling.produto", bling[0].produto.id);
+            item.saldo_bling = bling[0].saldoFisicoTotal;
+          }
+          var chg = saldosCHG.filter((x) => x.codigo === item.codigo);
+          if (chg) {
+            if (typeof chg[0].estoque !== "undefined") {
+              item.saldo_chg = chg[0].estoque > 3 ? chg[0].estoque : 0;
+            } else {
+              item.saldo_chg = -999999;
+            }
+            //console.log("bling - chg", item.saldo_bling, item.saldo_chg);
+          }
+        }
+      });
+      console.log("RESULTADOS");
+      tarefa.final = new Date().toLocaleString("pt-BR");
+      for (const [index, dado] of listaWork.entries()) {
+        if (dado.sem_codigo == "N" && dado.saldo_bling != dado.saldo_chg) {
+          if (dado.saldo_chg == -999999) {
+            const processado = {
+              id_empresa: emp.id,
+              id_tarefa: tarefa.id,
+              codigo: dado.codigo,
+              seq: 0,
+              descricao: dado.nome,
+              saldo_bling: dado.saldo_bling,
+              saldo_chg: 0,
+              ocorrencia: "Produto Não Encontrado Na CHG",
+              user_insert: 99,
+              user_update: 0,
+            };
+            tarefa.qtd_erro = tarefa.qtd_erro + 1;
+            await processadoSrv.insertProcessado(processado);
+            //console.log(
+            //  "Produto - ",
+            //  dado.id,
+            //  dado.codigo,
+            //  dado.nome,
+            //  "Produto Não Encontrado Na CHG"
+            //);
+          } else {
+            const processado = {
+              id_empresa: emp.id,
+              id_tarefa: tarefa.id,
+              codigo: dado.codigo,
+              seq: 0,
+              descricao: dado.nome,
+              saldo_bling: dado.saldo_bling,
+              saldo_chg: dado.saldo_chg,
+              ocorrencia: `Saldo Alterado Para ${dado.saldo_chg}.`,
+              user_insert: 99,
+              user_update: 0,
+            };
+            try {
+              novoSaldo = await this.postAjustaSaldo(
+                dado.id_deposito,
+                dado.id,
+                dado.saldo_chg,
+                dado.preco,
+                "AJUSTE AUTOMÁTICO CHG",
+                emp,
+              );
+              await processadoSrv.insertProcessado(processado);
+            } catch (error) {
+              processado.ocorrencia = `Falha Na Atualização Do Saldo No Bling!.`;
+              await processadoSrv.insertProcessado(processado);
+            }
+            //console.log("novoSaldo", novoSaldo);
+            contador++;
+          }
+        } else {
+          if (dado.sem_codigo == "N") {
+            const processado = {
+              id_empresa: emp.id,
+              id_tarefa: tarefa.id,
+              codigo: dado.codigo,
+              seq: 0,
+              descricao: dado.nome,
+              saldo_bling: dado.saldo_bling,
+              saldo_chg: dado.saldo_chg,
+              ocorrencia: `Saldo NÃO ALTERADO!.`,
+              user_insert: 99,
+              user_update: 0,
+            };
+            await processadoSrv.insertProcessado(processado);
+          }
+        }
+      }
+    }
+    //fim
+    const final = new Date();
+    const tempo = final.getTime() - inicio.getTime();
+    const segundos = tempo / 1000;
+    tarefa.tempo = convertSegToHorario(segundos);
+    tarefa.final = final.toLocaleString("pt-BR");
+    const men = `Fim Do Processamento. ${
       contador == 0
         ? "NENHUM PRODUTO AJUSTADO!"
         : contador.toString() +
@@ -815,6 +832,7 @@ exports.getProdutoSimplesAllPages = async function (id_empresa) {
       const options = {
         url: `https://api.bling.com.br/Api/v3/produtos`,
         method: "get",
+        httpsAgent: agent,
         params: {
           pagina: page,
           limite: 50,
@@ -941,6 +959,7 @@ exports.getProdutoSimpleByIdsTamPage = async function (
   const options = {
     url: "https://api.bling.com.br/Api/v3/produtos",
     method: "get",
+    httpsAgent: agent,
     params: params,
     paramsSerializer: function (params) {
       let query = [];
@@ -993,18 +1012,16 @@ exports.getListaWorkTamPage = async function (emp, page, tamPage) {
     if (lista.length == 0) {
       return workList;
     } else {
-      lista.forEach(async (bling) => {
-        workList.push({
-          id: bling.id,
-          nome: bling.nome,
-          codigo: bling.codigo == "" ? bling.id : bling.codigo,
-          preco: bling.preco,
-          id_deposito: emp.id_deposito,
-          saldo_bling: bling.estoque?.saldoFisicoTotal ?? 0,
-          saldo_chg: 0,
-          sem_codigo: bling.codigo == "" ? "S" : "N",
-        });
-      });
+      workList = lista.map((bling) => ({
+        id: bling.id,
+        nome: bling.nome,
+        codigo: bling.codigo == "" ? bling.id : bling.codigo,
+        preco: bling.preco,
+        id_deposito: emp.id_deposito,
+        saldo_bling: bling.estoque?.saldoFisicoTotal ?? 0,
+        saldo_chg: 0,
+        sem_codigo: bling.codigo == "" ? "S" : "N",
+      }));
     }
 
     return workList;
