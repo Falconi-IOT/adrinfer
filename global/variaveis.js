@@ -1,14 +1,14 @@
-let ACCESSTOKEN = "f69223e0d7af02833b3ae7d771052dddb01f39a1";
+let ACCESSTOKEN = "";
 
-let REFRESH_TOKEN = "64019c25fd1e3a32eb72f141c9b50981be944860"
+let REFRESH_TOKEN = ""
 
-let CODE = "8e081863b4f491d24b91bb9402b9d77067b05dcc"
+let CODE = ""
 
-let IDDEPOSITO = "14887604950";
+let IDDEPOSITO = "";
 
-let IDCATEGORIA = "9260994";
+let IDCATEGORIA = "";
 
-let KEYCHG = "cuJDtZKp55fFzsUZYM4XDgGYbGNurkFX";
+let KEYCHG = "";
 
 exports.setAcessToken = function(value) {
 
@@ -38,21 +38,6 @@ exports.getRefreshToken = function(value) {
 
 }
 
-
-exports.getCredentialsBase64 = function(cliente) {
-    let credBase64 = "";
-
-    if (cliente == 1) {
-        const clientId = "ad4ef071ff95286ac58508d99f21c195266fab6a";
-        const secretClient = "137452b9150016a50c705116480a86982056c287d50b0909f60378e82aa0";
-        const credentials = clientId + ":" + secretClient;
-        let buff = Buffer.from(credentials);
-        credBase64 = buff.toString('base64')
-    }
-
-    return credBase64;
-
-}
 
 exports.getCode = function() {
 

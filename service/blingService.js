@@ -355,10 +355,6 @@ exports.sincronizacaov2 = async function(id_empresa) {
     while (true) {
         page++;
 
-        if (page == 3){
-            break; // TESTE - REMOVER DEPOIS
-        }
-
         const listaWork = await this.getListaWorkTamPage(emp, page, 100);
         if (listaWork.length === 0) break;
 
