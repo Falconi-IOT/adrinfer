@@ -21,11 +21,11 @@ const allowCors = (req, res, next) => {
 
   res.header(
     "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Access-Control-Allow-Credentials, X-Access-Token, X-Key"
+    "Origin, X-Requested-With, Content-Type, Accept, Authorization, Access-Control-Allow-Credentials, X-Access-Token, X-Key",
   );
   res.header(
     "Access-Control-Allow-Methods",
-    "GET, PUT, POST, DELETE, OPTIONS, PATCH"
+    "GET, PUT, POST, DELETE, OPTIONS, PATCH",
   );
 
   res.header("Access-Control-Allow-Credentials", "false");
@@ -100,8 +100,6 @@ app.get("*", (req, res) => {
 });
 
 iniciar();
-
-console.log("AMBIENTE:", process.env.ENVIRONMENT);
 
 app.listen(PORT, () => {
   console.log(`Servidor No Ar. Porta${PORT}`);

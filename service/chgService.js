@@ -1,120 +1,99 @@
 const chgData = require("../data/chgData");
 const axios = require("axios");
+const axiosRetry = require("axios-retry").default;
+const pLimit = require("p-limit").default;
+const limitCHG = pLimit(4); // 4 workers
 
 const https = require("https");
 
-exports.getChgCatalogo = async function (emp, pagina) {
-  const url = `https://loja.chg.com.br/api/catalogo/produtos?key=${emp.key_chg}&filial=CPS&pagina=${pagina}`;
-  let response = await axios.get(url);
-  return response.data.data;
-};
+// === AXIOS DEDICADO PARA A CHG ===
+const axiosCHG = axios.create({
+  httpsAgent: new https.Agent({
+    keepAlive: true,
+    keepAliveMsecs: 5000,
+    maxSockets: 5,        // evita overload
+    maxFreeSockets: 2,
+    rejectUnauthorized: false
+  }),
+  timeout: 15000
+});
 
-/* exports.getProdutoByCodigo = async function (emp, codigo) {
-  process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-  console.log("chave chg:", emp.key_chg, codigo);
+// === RETRY AUTOMÁTICO ===
+axiosRetry(axiosCHG, {
+    retries: 3,
+    retryDelay: (count) => count * 2000,
+    retryCondition: (error) => {
+        return (
+            error.code === "ECONNRESET" ||
+            error.code === "ETIMEDOUT" ||
+            axiosRetry.isNetworkError(error) ||
+            axiosRetry.isRetryableError(error)
+        );
+    },
+});
 
-  const url = `https://loja.chg.com.br/api/catalogo/produto?key=${emp.key_chg}&produto=${codigo}&filial=CPS`;
-  try {
-    let response = await axios.get(url);
-    if (response.data.err_code == "404") {
-      return { codigo: codigo };
-    }
+exports.getChgCatalogo = async function(emp, pagina) {
+    const url = `https://loja.chg.com.br/api/catalogo/produtos?key=${emp.key_chg}&filial=CPS&pagina=${pagina}`;
+    let response = await axiosCHG.get(url);
     return response.data.data;
-  } catch (error) {
-    console.log("Erro ao buscar produto na CHG:", error.message || error);
-    throw error;
-  }
-}; */
+};
 
-//feito pela IA
-exports.getProdutoByCodigo = async function (emp, codigo) {
-  const agent = new https.Agent({ rejectUnauthorized: false });
 
-  const url =
-    "https://loja.chg.com.br/api/catalogo/produto" +
-    "?key=" +
-    emp.key_chg +
-    "&produto=" +
-    codigo +
-    "&filial=CPS";
+// === FUNÇÃO REFEITA ===
+exports.getProdutoByCodigo = async function(emp, codigo) {
+    const url =
+        "https://loja.chg.com.br/api/catalogo/produto" +
+        "?key=" + emp.key_chg +
+        "&produto=" + codigo +
+        "&filial=CPS";
 
-  let tentativas = 0;
-
-  while (tentativas < 3) {
     try {
-      const response = await axios.get(url, { httpsAgent: agent });
-      const data = response.data;
+        const response = await axiosCHG.get(url);
+        const data = response.data;
 
-      if (!data || !data.data) {
-        console.log("CHG sem dados para:", codigo);
-        return { codigo: codigo, estoque: -999999 };
-      }
-      //console.log("Resposta CHG para", codigo, "=>", data.data);
-      return data.data;
+        if (!data || !data.data) {
+            console.log("Produto Não Encontrado:", codigo);
+            return { codigo, estoque: -999999 };
+        } else {
+            return data.data;
+        }
+
+
+
     } catch (error) {
-      tentativas++;
 
-      const erroApi =
-        error.response && error.response.data
-          ? error.response.data
-          : error.message;
+        const erroApi =
 
-      console.log("Erro ao buscar produto na CHG:", erroApi);
-      console.log("Falha Na API da CHG. Tentativa", tentativas);
+            error.response?.data || error.message;
 
-      // espera 300ms antes de tentar de novo
-      await new Promise((resolve) => setTimeout(resolve, 300));
+
+        console.log("Erro ao buscar produto na CHG:", erroApi);
+
+        return { codigo, estoque: -999999 };
     }
-  }
-
-  // depois de 3 tentativas, retorna estoque 0
-  return { codigo: codigo, estoque: -999999 };
 };
 
-/* exports.getProdutoByCodigoArray = async function (emp, produtos) {
-  //process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0";
 
-  let retorno = [];
-  //console.log("Parametro funcao getProdutoByCodigoArray:", produtos)
-  for (const [index, dado] of produtos.entries()) {
-    const produto = await this.getProdutoByCodigo(emp, dado.codigo);
-    if (response.data.data == {}) {
-      console.log("Produto CHG =>", response.data);
-    }
-    retorno.push({
-      index: index,
-      codigo: produto.codigo,
-      estoque: produto.estoque,
-    });
-  }
-  return retorno;
-};
- */
-//gerado pela IA
-exports.getProdutoByCodigoArray = async function (emp, produtos) {
-  let retorno = [];
+exports.getProdutoByCodigoArray = async function(emp, codigoProdutos) {
+    const resultados = await Promise.all(
+        codigoProdutos.map((p) =>
+            limitCHG(async() => {
+                try {
+                    const produto = await this.getProdutoByCodigo(emp, p.codigo);
+                    return {
+                        codigo: p.codigo,
+                        estoque: produto?.estoque ? produto?.estoque : -999999,
+                    };
+                } catch (err) {
+                    return {
+                        codigo: p.codigo,
+                        estoque: -999999,
+                    };
+                }
+            }),
+        ),
+    );
 
-  for (const [index, dado] of produtos.entries()) {
-    const produto = await this.getProdutoByCodigo(emp, dado.codigo);
-
-    // produto pode ser { codigo: X, estoque: 0 } quando não encontrado ou erro
-    if (!produto || !produto.codigo) {
-      console.log("Produto CHG inválido:", produto, dado.codigo);
-      retorno.push({
-        index: index,
-        codigo: dado.codigo,
-        estoque: 0,
-      });
-      continue;
-    }
-
-    retorno.push({
-      index: index,
-      codigo: produto.codigo,
-      estoque: produto.estoque || 0,
-    });
-  }
-
-  return retorno;
+    return resultados;
 };

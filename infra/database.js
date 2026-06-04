@@ -1,43 +1,17 @@
-/* fontes gerado automaticamente */
 const pgp = require("pg-promise")();
+const fs = require("fs");
 
-db = null;
+let dbConfig;
 
-
-if (process.env.PORT) {
-  db = pgp({
-    user: "postgres",
-    password: "GEYgXQwbdKjCcGyCzOlsURrEULcvyNnP",
-    host: "caboose.proxy.rlwy.net",
-    port: 49441,
-    database: "railway",
-  });
+if (process.env.DATABASE_URL) {
+  dbConfig = process.env.DATABASE_URL;
+  console.log("Conexão Configurada Para Nuvem");
 } else {
-  db = pgp({
-     user: "postgres",
-    password: "GEYgXQwbdKjCcGyCzOlsURrEULcvyNnP",
-    host: "caboose.proxy.rlwy.net",
-    port: 49441,
-    database: "railway",
-  });
+  const conexao = JSON.parse(fs.readFileSync("./conexoes_local.json", "utf8"));
+  dbConfig = conexao.database_url;
+  console.log("Conexão configurada Para Local!");
 }
 
+const db = pgp(dbConfig);
+
 module.exports = db;
-/*//web
-postgresql://postgres:PfNbmHQxjSnsZMCjzUYYLpVETcPeuBVx@monorail.proxy.rlwy.net:34218/railway
-
-
-acesso via web
-
- 
-
-*/
-/*
-db = pgp({
-        user: "postgres",
-        password: "123456",
-        host: "localhost",
-        port: 5432,
-        database: "db_afrinfer",
-    });
-    */
