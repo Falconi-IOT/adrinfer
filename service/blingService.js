@@ -14,6 +14,8 @@ const qs = require("querystring");
 const pLimit = require("p-limit").default;
 const limitAjuste = pLimit(2); // 2 workers simultâneos
 
+
+
 // Axios dedicado para o Bling
 const axiosBling = axios.create({
     httpsAgent: new https.Agent({ keepAlive: true }),
@@ -39,11 +41,7 @@ axiosRetry(axiosBling, {
 process.env.TZ = "America/Araguaina";
 
 
-async function sleep(ms) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, ms);
-    });
-}
+const sleep = (ms) => new Promise(r => setTimeout(r, ms));
 
 const convertSegToHorario = (seconds) => {
     const hours = Math.floor(seconds / 3600);
@@ -90,7 +88,6 @@ exports.getRefreshToken = async function(emp) {
     const options = {
         url: "https://api.bling.com.br/Api/v3/oauth/token",
         method: "POST",
-        httpsAgent: agent,
         headers: {
             "content-type": "application/x-www-form-urlencoded",
             Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
@@ -354,6 +351,8 @@ exports.sincronizacaov2 = async function(id_empresa) {
 
     while (true) {
         page++;
+        
+        await sleep(350);
 
         const listaWork = await this.getListaWorkTamPage(emp, page, 100);
         if (listaWork.length === 0) break;
@@ -573,13 +572,13 @@ exports.stopAgendamentoEmpresa = async function(id_empresa) {
     }
 };
 
+
 exports.getProdutoSimpleByIdsTamPage = async function(
     id_produtos,
     emp,
     pagina,
     tamPage,
 ) {
-    
     let page = pagina || 1;
 
     const params = {
@@ -588,7 +587,6 @@ exports.getProdutoSimpleByIdsTamPage = async function(
         idCategoria: emp.id_categoria,
     };
 
-    // Só envia idsProdutos se houver IDs
     if (id_produtos && id_produtos.length > 0) {
         params.idsProdutos = id_produtos;
     }
@@ -622,7 +620,12 @@ exports.getProdutoSimpleByIdsTamPage = async function(
     };
 
     try {
-        const response = await axios(options);
+        // 🔥 Delay obrigatório para evitar 429
+        await sleep(350);
+
+        // 🔥 Usar axiosBling (com keepAlive + retry + timeout)
+        const response = await axiosBling(options);
+
         return response.data.data;
     } catch (err) {
         const erroApi =
