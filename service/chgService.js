@@ -53,9 +53,14 @@ exports.getProdutoByCodigo = async function(emp, codigo) {
         const data = response.data;
 
         if (!data || !data.data) {
-            console.log("Produto Não Encontrado:", codigo);
+            if (codigo == '0661031' || codigo == '0512375'){
+               //console.log("Produto Não Encontrado:", codigo);
+            }
             return { codigo, estoque: -999999 };
         } else {
+            if (codigo == '0661031' || codigo == '0512375'){
+               //console.log("Produto Não Encontrado:", codigo);
+            }
             return data.data;
         }
 
