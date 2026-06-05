@@ -14,6 +14,7 @@ const qs = require("querystring");
 const pLimit = require("p-limit").default;
 const limitAjuste = pLimit(2); // 2 workers simultâneos
 
+const iguais = (a, b) => Number(a) === Number(b);
 
 
 // Axios dedicado para o Bling
@@ -408,7 +409,7 @@ exports.sincronizacaov2 = async function(id_empresa) {
         await Promise.all(
             listaWork.map((dado) =>
                 limitAjuste(async() => {
-                    if (dado.sem_codigo === "N" && dado.saldo_bling !== dado.saldo_chg) {
+                    if (dado.sem_codigo === "N" && !iguais(dado.saldo_bling, dado.saldo_chg)) {
                         const processado = {
                             id_empresa: emp.id,
                             id_tarefa: tarefa.id,
@@ -630,7 +631,7 @@ exports.getProdutoSimpleByIdsTamPage = async function(
     } catch (err) {
         const erroApi =
             err.response && err.response.data ? err.response.data : err.message;
-        console.log("Erro getProdutoSimpleByIdsTamPage:", erroApi);
+            console.log("Erro getProdutoSimpleByIdsTamPage:", erroApi);
         throw err;
     }
 };
