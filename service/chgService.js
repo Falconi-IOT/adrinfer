@@ -2,7 +2,7 @@ const chgData = require("../data/chgData");
 const axios = require("axios");
 const axiosRetry = require("axios-retry").default;
 const pLimit = require("p-limit").default;
-const limitCHG = pLimit(4); // 4 workers
+const limitCHG = pLimit(2); // 2 workers
 
 const https = require("https");
 

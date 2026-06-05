@@ -11,6 +11,7 @@ const path = require("path");
 const bling = require("./util/bling.js");
 const empresaSrv = require("./service/empresaService");
 const chgSrv = require("./service/chgService.js");
+const blingSrv = require("./service/blingService.js");
 const shared = require("./util/shared.js");
 const PORT = process.env.PORT || 3000;
 const app = express();
@@ -34,7 +35,7 @@ const allowCors = (req, res, next) => {
 };
 
 const verficaCHG = async function (emp) {
-  const produtos = [{ codigo: "0212234" }];
+  const produtos = [{ codigo: "0661031" }];
 
   for (const [index, dado] of produtos.entries()) {
     try {
@@ -65,6 +66,7 @@ const iniciar = async function () {
     throw error;
   }
   await verficaCHG(emp);
+
   try {
     await refreshToken(emp);
   } catch (error) {
@@ -79,6 +81,17 @@ const iniciar = async function () {
       }
     }
   }
+
+   const produto = await blingSrv.getProdutoByCodigo(emp, "0661031");
+
+   const id_produto = produto?.id ? produto.id : 0;
+
+   console.log("ID Produto: ", id_produto);
+
+   const saldo = await blingSrv.getProdutoSimpleByIdsTamPage([16240167289], emp, 1, 10);
+
+    console.log("Saldo: ", saldo);
+
   empresaSrv.AtivarEmpresas();
 };
 

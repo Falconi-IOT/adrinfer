@@ -668,3 +668,32 @@ exports.getListaWorkTamPage = async function(emp, page, tamPage) {
         throw err;
     }
 };
+
+exports.getProdutoByCodigo = async function(emp, codigo) {
+    try {
+        const params = {
+            codigo: codigo,
+            idCategoria: emp.id_categoria,
+        };
+
+        // 🔥 Delay para evitar 429
+        await sleep(350);
+
+        // 🔥 Usar axiosBling (retry + keepAlive)
+        const resp = await axiosBling.get(
+            "https://api.bling.com.br/Api/v3/produtos",
+            {
+                params: params,
+                headers: { Authorization: "Bearer " + emp.access_token }
+            }
+        );
+
+        return resp.data.data;
+
+    } catch (err) {
+        const erroApi =
+            err.response && err.response.data ? err.response.data : err.message;
+            console.log("Erro getProdutoByCodigo:", erroApi);
+            throw err;
+    }
+};
