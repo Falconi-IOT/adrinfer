@@ -319,7 +319,7 @@ exports.sincronizacaov2 = async function(id_empresa) {
     // ============================
     // 1. Buscar empresa e criar tarefa
     // ============================
-    const emp = await empresaSrv.getEmpresa(id_empresa);
+    let emp = await empresaSrv.getEmpresa(id_empresa);
 
     let tarefa = await tarefaSrv.insertTarefa({
         id_empresa: emp.id,
@@ -340,10 +340,11 @@ exports.sincronizacaov2 = async function(id_empresa) {
     // ============================
     // 2. Validar token do Bling
     // ============================
-    const validade = shared.ValidarToken(emp);
+    emp = await bling.getAtualizaToken(emp);
+   /*  const validade = shared.ValidarToken(emp);
     if (validade.minutos_restantes <= 60) {
         emp = await bling.getAtualizaToken(emp);
-    }
+    } */
 
     // ============================
     // 3. Loop de páginas do Bling
