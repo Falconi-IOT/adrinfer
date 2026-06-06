@@ -340,11 +340,12 @@ exports.sincronizacaov2 = async function(id_empresa) {
     // ============================
     // 2. Validar token do Bling
     // ============================
-    emp = await bling.getAtualizaToken(emp);
-   /*  const validade = shared.ValidarToken(emp);
+
+    const validade = shared.ValidarToken(emp);
+
     if (validade.minutos_restantes <= 60) {
         emp = await bling.getAtualizaToken(emp);
-    } */
+    } 
 
     // ============================
     // 3. Loop de páginas do Bling
@@ -449,21 +450,37 @@ exports.sincronizacaov2 = async function(id_empresa) {
                             processado.ocorrencia = "Falha Na Atualização Do Saldo No Bling!";
                             await processadoSrv.insertProcessado(processado);
                         }
-                    } else if (dado.sem_codigo === "N") {
-                        // Saldo igual → registrar
-                        await processadoSrv.insertProcessado({
-                            id_empresa: emp.id,
-                            id_tarefa: tarefa.id,
-                            codigo: dado.codigo,
-                            seq: 0,
-                            descricao: dado.nome,
-                            saldo_bling: dado.saldo_bling,
-                            saldo_chg: dado.saldo_chg,
-                            ocorrencia: "Saldo NÃO ALTERADO!",
-                            user_insert: 99,
-                            user_update: 0,
-                        });
-                    }
+                    } else 
+                        if (dado.sem_codigo === "N")
+                            {
+                                // Saldo igual → registrar
+                                await processadoSrv.insertProcessado({
+                                    id_empresa: emp.id,
+                                    id_tarefa: tarefa.id,
+                                    codigo: dado.codigo,
+                                    seq: 0,
+                                    descricao: dado.nome,
+                                    saldo_bling: dado.saldo_bling,
+                                    saldo_chg: dado.saldo_chg,
+                                    ocorrencia: "Saldo NÃO ALTERADO! Saldos Iguais",
+                                    user_insert: 99,
+                                    user_update: 0,
+                                });
+                            }
+                        else {
+                             await processadoSrv.insertProcessado({
+                                    id_empresa: emp.id,
+                                    id_tarefa: tarefa.id,
+                                    codigo: dado.codigo,
+                                    seq: 0,
+                                    descricao: dado.nome,
+                                    saldo_bling: dado.saldo_bling,
+                                    saldo_chg: dado.saldo_chg,
+                                    ocorrencia: "Saldo NÃO ALTERADO! Produto Sem Código",
+                                    user_insert: 99,
+                                    user_update: 0,
+                                });
+                        }
                 }),
             ),
         );
