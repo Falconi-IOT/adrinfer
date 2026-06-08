@@ -20,10 +20,10 @@ const iguais = (a, b) => Number(a) === Number(b);
 // Axios dedicado para o Bling
 const axiosBling = axios.create({
     httpsAgent: new https.Agent({ keepAlive: true }),
-    timeout: 8000,
+    timeout: 30000,
 });
 
-// Retry automático (opcional, mas recomendado)
+
 axiosRetry(axiosBling, {
     retries: 3,
     retryDelay: axiosRetry.exponentialDelay,
@@ -31,11 +31,13 @@ axiosRetry(axiosBling, {
         return (
             error.code === "ECONNRESET" ||
             error.code === "ETIMEDOUT" ||
+            error.code === "ECONNABORTED" ||   // <=== FALTAVA ESSE
             axiosRetry.isNetworkError(error) ||
             axiosRetry.isRetryableError(error)
         );
     },
 });
+
 
 
 
@@ -646,12 +648,30 @@ exports.getProdutoSimpleByIdsTamPage = async function(
         const response = await axiosBling(options);
 
         return response.data.data;
-    } catch (err) {
-        const erroApi =
-            err.response && err.response.data ? err.response.data : err.message;
-            console.log("Erro getProdutoSimpleByIdsTamPage:", erroApi);
-        throw err;
+    }catch (err) {
+
+    // Timeout do Axios → ECONNABORTED
+    if (err.code === "ECONNABORTED") {
+        console.log(`Timeout na página ${page}. Retornando lista vazia.`);
+        return [];
     }
+
+    // Bling fechou a conexão
+    if (err.code === "ECONNRESET" || err.code === "ETIMEDOUT") {
+        console.log(`Conexão fechada pelo Bling na página ${page}. Retornando lista vazia.`);
+        return [];
+    }
+
+    // Página realmente não existe
+    if (err.response && err.response.status === 404) {
+        console.log(`Página ${page} não existe. Retornando lista vazia.`);
+        return [];
+    }
+
+    // Qualquer outro erro → lançar
+    throw err;
+}
+
 };
 
 exports.getListaWorkTamPage = async function(emp, page, tamPage) {
