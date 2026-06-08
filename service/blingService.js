@@ -647,6 +647,10 @@ exports.getProdutoSimpleByIdsTamPage = async function(
         // 🔥 Usar axiosBling (com keepAlive + retry + timeout)
         const response = await axiosBling(options);
 
+         if (!response.data || response.data.length === 0) {
+            return [];
+        }
+
         return response.data.data;
     }catch (err) {
 
