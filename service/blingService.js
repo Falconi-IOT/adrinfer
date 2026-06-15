@@ -16,6 +16,116 @@ const limitAjuste = pLimit(2); // 2 workers simultâneos
 
 const iguais = (a, b) => Number(a) === Number(b);
 
+function getBrazilDateTime() {
+    const now = new Date();
+    const offsetMs = now.getTime() - (3 * 60 * 60 * 1000); // UTC-3
+    const br = new Date(offsetMs);
+    return br.toISOString().substring(0, 19); // remove o Z
+}
+
+
+// === Função auxiliar: FULL ou INCREMENTAL ===
+function getNextChgDateRef(emp) {
+    const nowBR = getBrazilDateTime();
+    const today = nowBR.substring(0, 10);
+
+    // Nunca sincronizou → FULL LOAD
+    if (!emp.chg_last_sync_datetime) {
+        return { mode: "FULL", dateref: `${today}T00:00:00` };
+    }
+
+    const lastDay = emp.chg_last_sync_datetime.substring(0, 10);
+
+    // Mudou o dia → FULL LOAD
+    if (lastDay !== today) {
+        return { mode: "FULL", dateref: `${today}T00:00:00` };
+    }
+
+    // Mesmo dia → INCREMENTAL
+    return { mode: "INC", dateref: emp.chg_last_sync_datetime };
+}
+
+
+// === Função para buscar todas as páginas ===
+async function getChgFullList(emp, dateref) {
+    let pagina = 1;
+    let listaFinal = [];
+
+    while (true) {
+        const url = `https://loja.chg.com.br/api/catalogo/userest?key=${emp.key_chg}&filial=CPS&pagina=${pagina}&dateref=${dateref}&preco=1`;
+        
+        try {
+            const resp = await axios.get(url, { timeout: 30000 });
+
+            const lista = resp.data.data.resultado;
+
+            if (!lista || lista.length === 0) break;
+
+            listaFinal.push(...lista);
+
+            console.log("Pagina..:",pagina);
+
+            pagina++;
+
+        } catch (err) {
+            console.log("Erro CHG página", pagina, err.code || err.message);
+
+            // Timeout/reset → considerar fim das páginas
+            if (["ECONNRESET", "ETIMEDOUT", "ECONNABORTED"].includes(err.code)) {
+                break;
+            }
+
+            throw err;
+        }
+    }
+
+    return listaFinal;
+}
+
+exports.sincronizaCHG = async function (emp) {
+
+    console.log("=== INICIANDO SINCRONIZAÇÃO CHG ===");
+
+    // 1. FULL ou INCREMENTAL?
+    let { mode, dateref } = getNextChgDateRef(emp);
+    console.log("Modo:", mode, "dateref:", dateref);
+
+    // 2. Buscar lista da CHG
+    let lista = await getChgFullList(emp, dateref);
+
+    // 3. Incremental vazio → FULL LOAD obrigatório
+    if (mode === "INC" && lista.length === 0) {
+        console.log("Incremental vazio → FULL LOAD");
+
+        const today = getBrazilDateTime().substring(0, 10);
+        const fullDate = `${today}T00:00:00`;
+
+        lista = await getChgFullList(emp, fullDate);
+        mode = "FULL";
+    }
+
+    // 4. Persistir no banco
+    if (mode === "FULL") {
+        console.log("Salvando FULL LOAD CHG...");
+        await chgSrv.salvarListaCompleta(emp.id, lista);
+    } else {
+        console.log("Aplicando INCREMENTAL CHG...");
+        for (const item of lista) {
+            await chgSrv.atualizarProduto(emp.id, item.codigo, item);
+        }
+    }
+
+    // 5. Atualizar última sincronização
+    emp.chg_last_sync_datetime = getBrazilDateTime();
+    await empresaSrv.updateEmpresa(emp);
+
+    console.log("CHG sincronizado com sucesso.");
+
+    // 6. Retornar lista atualizada
+    return lista;
+};
+
+
 
 // Axios dedicado para o Bling
 const axiosBling = axios.create({
@@ -318,10 +428,13 @@ exports.sincronizacaov2 = async function(id_empresa) {
     let page = 0;
     let produtosBling = [];
 
+
+
     // ============================
     // 1. Buscar empresa e criar tarefa
     // ============================
     let emp = await empresaSrv.getEmpresa(id_empresa);
+
 
     let tarefa = await tarefaSrv.insertTarefa({
         id_empresa: emp.id,
@@ -503,6 +616,159 @@ exports.sincronizacaov2 = async function(id_empresa) {
 
     return { message: "Processamento Finalizado" , tempo: tarefa.tempo};
 };
+
+exports.sincronizacaov3 = async function(id_empresa) {
+    const inicio = new Date();
+    let page = 0;
+    let produtosBling = [];
+
+    // 1. Buscar empresa
+    let emp = await empresaSrv.getEmpresa(id_empresa);
+
+    // 2. Criar tarefa
+    let tarefa = await tarefaSrv.insertTarefa({
+        id_empresa: emp.id,
+        id: 0,
+        id_usuario: 99,
+        descricao: "Iniciando Processamento...Aguarde!",
+        tempo: "",
+        inicial: new Date().toLocaleString("pt-BR"),
+        final: new Date().toLocaleString("pt-BR"),
+        qtd_total: 0,
+        qtd_erro: 0,
+        status: 0,
+        descricao_erro: "",
+        user_insert: 99,
+        user_update: 0,
+    });
+
+    // 3. Validar token do Bling
+    const validade = shared.ValidarToken(emp);
+    if (validade.minutos_restantes <= 60) {
+        emp = await bling.getAtualizaToken(emp);
+    }
+
+    // 4. Sincronizar CHG (FULL/INC)
+    console.log("SINCRONIZANDO CHG...");
+    await exports.sincronizaCHG(emp); // usa a versão nova que já fizemos
+
+
+    // 5. Carregar tabela CHG do banco
+    console.log("CARREGANDO LISTA CHG DO BANCO...");
+    const listaCHG = await chgSrv.getListaCompleta(emp.id);
+
+
+    // 6. Loop de páginas do Bling
+    console.log("BUSCAR LISTWORK");
+
+    while (true) {
+        page++;
+        await sleep(350);
+
+        const listaWork = await this.getListaWorkTamPage(emp, page, 100);
+
+
+        if (listaWork.length === 0 ) break;
+
+        console.log(`Página ${page} - ${listaWork.length} produtos`);
+        tarefa.qtd_total += listaWork.length;
+        produtosBling.push(...listaWork);
+
+        // 7. Buscar saldos do Bling
+        const idsProdutos = listaWork.filter(p => p.sem_codigo === "N").map(p => p.id);
+        const saldosBling = await this.getSaldos(idsProdutos, emp);
+         
+        // 8. Mesclar Bling + CHG (AGORA DO BANCO)
+        listaWork.forEach((item) => {
+        if (item.sem_codigo === "N") {
+
+            const bling = saldosBling.find((x) => x?.produto?.id === item.id);
+
+            item.saldo_bling = bling?.saldoFisicoTotal ?? 0;
+            
+            const chg = listaCHG.find((x) => x.codigo === item.codigo);
+                
+            item.saldo_chg = chg ? (chg.estoque > 3 ? chg.estoque : 0) : -999999;  
+          }
+        });
+
+        
+
+        // 9. Ajustar saldos no Bling
+        console.log("Ajustando saldos do Bling...");
+
+        await Promise.all(
+            listaWork.map((dado) =>
+                limitAjuste(async () => {
+                    const processado = {
+                        id_empresa: emp.id,
+                        id_tarefa: tarefa.id,
+                        codigo: dado.codigo,
+                        seq: 0,
+                        descricao: dado.nome,
+                        saldo_bling: dado.saldo_bling,
+                        saldo_chg: dado.saldo_chg,
+                        ocorrencia: "",
+                        user_insert: 99,
+                        user_update: 0,
+                    };
+
+                    if (dado.sem_codigo === "S") {
+                        processado.ocorrencia = "Produto Sem Código";
+                        await processadoSrv.insertProcessado(processado);
+                        return;
+                    }
+
+                    if (dado.saldo_chg === -999999) {
+                        processado.ocorrencia = "Produto Não Encontrado Na CHG";
+                        tarefa.qtd_erro++;
+                        await processadoSrv.insertProcessado(processado);
+                        return;
+                    }
+
+                    if (iguais(dado.saldo_bling, dado.saldo_chg)) {
+                        processado.ocorrencia = "Saldo NÃO ALTERADO! Saldos Iguais";
+                        await processadoSrv.insertProcessado(processado);
+                        return;
+                    }
+                    console.log(`ajustando ${dado.codigo}`);
+                    try {
+                        await this.postAjustaSaldo(
+                            dado.id_deposito,
+                            dado.id,
+                            dado.saldo_chg,
+                            dado.preco,
+                            "AJUSTE AUTOMÁTICO CHG",
+                            emp,
+                        );
+
+                        processado.ocorrencia = `Saldo Alterado Para ${dado.saldo_chg}.`;
+                        await processadoSrv.insertProcessado(processado);
+
+                    } catch (err) {
+                        processado.ocorrencia = "Falha Na Atualização Do Saldo No Bling!";
+                        await processadoSrv.insertProcessado(processado);
+                    }
+                })
+            )
+        );
+
+        tarefa.final = new Date().toLocaleString("pt-BR");
+
+    }
+
+    // 10. Finalizar tarefa
+    const final = new Date();
+    const tempo = (final.getTime() - inicio.getTime()) / 1000;
+
+    tarefa.tempo = convertSegToHorario(tempo);
+    tarefa.final = final.toLocaleString("pt-BR");
+    tarefa.descricao = "Processamento Finalizado";
+    await tarefaSrv.updateTarefa(tarefa);
+
+    return { message: "Processamento Finalizado", tempo: tarefa.tempo };
+};
+
 
 exports.getProdutoSimplesAllPages = async function(id_empresa) {
     let lista = [];

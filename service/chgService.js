@@ -3,6 +3,7 @@ const axios = require("axios");
 const axiosRetry = require("axios-retry").default;
 const pLimit = require("p-limit").default;
 const limitCHG = pLimit(2); // 2 workers
+const db = require("../infra/database");
 
 const https = require("https");
 
@@ -27,6 +28,7 @@ axiosRetry(axiosCHG, {
         return (
             error.code === "ECONNRESET" ||
             error.code === "ETIMEDOUT" ||
+             error.code === "ECONNABORTED" ||
             axiosRetry.isNetworkError(error) ||
             axiosRetry.isRetryableError(error)
         );
@@ -102,3 +104,96 @@ exports.getProdutoByCodigoArray = async function(emp, codigoProdutos) {
 
     return resultados;
 };
+
+
+// FULL LOAD — substitui tudo
+exports.salvarListaCompleta = async function (empresaId, lista) {
+
+    await db.query("DELETE FROM chg_produtos WHERE empresa_id = $1", [empresaId]);
+
+    if (!lista || lista.length === 0) return;
+
+    const batchSize = 1000; // 1000 produtos por lote
+    const now = new Date();
+
+    for (let i = 0; i < lista.length; i += batchSize) {
+        const chunk = lista.slice(i, i + batchSize);
+
+        const values = [];
+        const placeholders = [];
+
+        chunk.forEach((item, idx) => {
+            const base = idx * 6;
+            placeholders.push(
+                `($${base + 1}, $${base + 2}, $${base + 3}, $${base + 4}, $${base + 5}, $${base + 6})`
+            );
+
+            values.push(
+                empresaId,
+                item.codigo,
+                item.nome,
+                item.estoque,
+                item.preco,
+                now
+            );
+        });
+
+        const sql = `
+            INSERT INTO chg_produtos
+            (empresa_id, codigo, nome, estoque, preco, atualizado_em)
+            VALUES ${placeholders.join(",")}
+        `;
+
+        await db.query(sql, values);
+    }
+};
+
+    // INCREMENTAL — atualiza só o item alterado
+exports.atualizarProduto =  async function (empresaId, codigo, item) {
+
+        const sql = `
+            INSERT INTO chg_produtos
+            (empresa_id, codigo, nome, estoque, preco, atualizado_em)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            ON CONFLICT (empresa_id, codigo)
+            DO UPDATE SET
+                nome = EXCLUDED.nome,
+                estoque = EXCLUDED.estoque,
+                preco = EXCLUDED.preco,
+                atualizado_em = EXCLUDED.atualizado_em
+        `;
+
+        await db.query(sql, [
+            empresaId,
+            codigo,
+            item.nome,
+            item.estoque,
+            item.preco,
+            new Date()
+        ]);
+    },
+
+    // Carregar lista completa
+    exports.getListaCompleta = async function (empresaId) {
+        try {
+            const sql = `
+                SELECT codigo, nome, estoque, preco, atualizado_em
+                FROM chg_produtos
+                WHERE empresa_id = $1
+            `;
+
+            const result = await db.any(sql, [empresaId]);
+
+            return result; // <-- ESSENCIAL
+        } catch (err) {
+            console.log("Erro getListaCompleta:", err);
+            return []; // <-- nunca retorne undefined
+        }
+    };
+
+
+    // Opcional — limpar tudo
+  exports.limparEmpresa = async function (empresaId) {
+        await db.query("DELETE FROM chg_produtos WHERE empresa_id = $1", [empresaId]);
+    };
+

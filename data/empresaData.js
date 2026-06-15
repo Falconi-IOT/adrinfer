@@ -31,29 +31,30 @@ exports.getCampos = function (Empresa) {
 /* CRUD GET */
 exports.getEmpresa = function (id) {
   strSql = ` select   
-			   emp.id as  id  
-			,  emp.cnpj_cpf as  cnpj_cpf  
-			,  emp.razao as  razao  
-			,  emp.cliente_id as  cliente_id  
-			,  emp.cliente_secret as  cliente_secret  
-			,  emp.link as  link  
-			,  emp.url_redirecionamento as  url_redirecionamento  
-			,  emp.code as  code  
-			,  emp.access_token as  access_token  
-			,  emp.access_token_validade  as access_token_validade
-			,  emp.access_token_date as access_token_date
-			,  emp.refresh_token as  refresh_token   
-			,  emp.refresh_token_validade as refresh_token_validade 
-			,  emp.refresh_token_date as refresh_token_date 
-			,  emp.id_deposito as  id_deposito  
-			,  emp.id_categoria as  id_categoria  
-			,  emp.key_chg as  key_chg  
-			,  emp.ativo as  ativo  
-			,  emp.tempo as  tempo  
-			,  emp.user_insert as  user_insert  
-			,  emp.user_update as  user_update    
- 			FROM empresas emp 	     
-			 where emp.id = ${id}  `;
+               emp.id as  id  
+            ,  emp.cnpj_cpf as  cnpj_cpf  
+            ,  emp.razao as  razao  
+            ,  emp.cliente_id as  cliente_id  
+            ,  emp.cliente_secret as  cliente_secret  
+            ,  emp.link as  link  
+            ,  emp.url_redirecionamento as  url_redirecionamento  
+            ,  emp.code as  code  
+            ,  emp.access_token as  access_token  
+            ,  emp.access_token_validade  as access_token_validade
+            ,  emp.access_token_date as access_token_date
+            ,  emp.refresh_token as  refresh_token   
+            ,  emp.refresh_token_validade as refresh_token_validade 
+            ,  emp.refresh_token_date as refresh_token_date 
+            ,  emp.id_deposito as  id_deposito  
+            ,  emp.id_categoria as  id_categoria  
+            ,  emp.key_chg as  key_chg  
+            ,  emp.chg_last_sync_datetime as chg_last_sync_datetime  
+            ,  emp.ativo as  ativo  
+            ,  emp.tempo as  tempo  
+            ,  emp.user_insert as  user_insert  
+            ,  emp.user_update as  user_update     
+            FROM empresas emp        
+             where emp.id = ${id}  `;
   return db.oneOrNone(strSql);
 };
 /* CRUD GET ALL*/
@@ -135,10 +136,11 @@ exports.getEmpresas = function (params) {
 			,  emp.id_deposito as  id_deposito  
 			,  emp.id_categoria as  id_categoria  
 			,  emp.key_chg as  key_chg  
+			,  emp.chg_last_sync_datetime as chg_last_sync_datetime
 			,  emp.ativo as  ativo  
 			,  emp.tempo as  tempo  
 			,  emp.user_insert as  user_insert  
-			,  emp.user_update as  user_update     
+			,  emp.user_update as  user_update    
 			FROM empresas emp      
 			${where} 			${orderby} ${paginacao} `;
       return db.manyOrNone(strSql);
@@ -162,6 +164,7 @@ exports.getEmpresas = function (params) {
 			,  emp.id_deposito as  id_deposito  
 			,  emp.id_categoria as  id_categoria  
 			,  emp.key_chg as  key_chg  
+			,  emp.chg_last_sync_datetime as chg_last_sync_datetime
 			,  emp.ativo as  ativo  
 			,  emp.tempo as  tempo  
 			,  emp.user_insert as  user_insert  
@@ -219,35 +222,34 @@ exports.insertEmpresa = function (empresa) {
  returning * `;
   return db.oneOrNone(strSql);
 };
-/* CRUD - UPDATE */
-exports.updateEmpresa = function (empresa) {
+/* CRUD - UPDATE */exports.updateEmpresa = function (empresa) {
   strSql = `update   empresas set  
-		     cnpj_cpf = '${empresa.cnpj_cpf}' 
- 		 ,   razao = '${empresa.razao}' 
- 		 ,   cliente_id = '${empresa.cliente_id}' 
- 		 ,   cliente_secret = '${empresa.cliente_secret}' 
- 		 ,   link = '${empresa.link}' 
- 		 ,   url_redirecionamento = '${empresa.url_redirecionamento}' 
- 		 ,   code = '${empresa.code}' 
- 		 ,   access_token = '${empresa.access_token}' 
-		  ,  access_token_validade = ${empresa.access_token_validade}
-		  ,  access_token_date = '${empresa.access_token_date}'
- 		 ,   refresh_token = '${empresa.refresh_token}' 
-		  ,  refresh_token_validade = ${empresa.refresh_token_validade}
-		  ,  refresh_token_date =  '${empresa.refresh_token_date}'
- 		 ,   id_deposito = '${empresa.id_deposito}' 
- 		 ,   id_categoria = '${empresa.id_categoria}' 
- 		 ,   key_chg = '${empresa.key_chg}' 
- 		 ,   ativo = '${empresa.ativo}' 
- 		 ,   tempo = ${empresa.tempo} 
- 		 ,   user_insert = ${empresa.user_insert} 
- 		 ,   user_update = ${empresa.user_update} 
- 		 where id = ${empresa.id}  returning * `;
-
-  //console.log(strSql);
+             cnpj_cpf = '${empresa.cnpj_cpf}' 
+         ,   razao = '${empresa.razao}' 
+         ,   cliente_id = '${empresa.cliente_id}' 
+         ,   cliente_secret = '${empresa.cliente_secret}' 
+         ,   link = '${empresa.link}' 
+         ,   url_redirecionamento = '${empresa.url_redirecionamento}' 
+         ,   code = '${empresa.code}' 
+         ,   access_token = '${empresa.access_token}' 
+          ,  access_token_validade = ${empresa.access_token_validade}
+          ,  access_token_date = '${empresa.access_token_date}'
+         ,   refresh_token = '${empresa.refresh_token}' 
+          ,  refresh_token_validade = ${empresa.refresh_token_validade}
+          ,  refresh_token_date =  '${empresa.refresh_token_date}'
+         ,   id_deposito = '${empresa.id_deposito}' 
+         ,   id_categoria = '${empresa.id_categoria}' 
+         ,   key_chg = '${empresa.key_chg}' 
+         ,   ativo = '${empresa.ativo}' 
+         ,   tempo = ${empresa.tempo} 
+         ,   user_insert = ${empresa.user_insert} 
+         ,   user_update = ${empresa.user_update} 
+         ,   chg_last_sync_datetime = '${empresa.chg_last_sync_datetime}'   -- NOVO
+         where id = ${empresa.id}  returning * `;
 
   return db.oneOrNone(strSql);
 };
+
 /* CRUD - DELETE */
 exports.deleteEmpresa = function (id) {
   strSql = `delete from empresas 
