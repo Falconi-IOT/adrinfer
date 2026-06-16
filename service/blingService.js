@@ -23,6 +23,10 @@ function getBrazilDateTime() {
     return br.toISOString().substring(0, 19); // remove o Z
 }
 
+
+
+
+
 function getDataFullCHG() {
     const d = new Date();
     d.setDate(d.getDate() - 1); // dia anterior
