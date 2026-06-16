@@ -303,8 +303,6 @@ exports.postAjustaSaldo = async function(
                 operacao: "B",
                 produto: { id: id_produto },
                 quantidade: qtd,
-                preco: preco,
-                custo: preco,
                 observacoes: histo,
             }, {
                 headers: {
