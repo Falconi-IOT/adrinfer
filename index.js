@@ -34,6 +34,8 @@ const allowCors = (req, res, next) => {
   next();
 };
 
+
+
 const verficaCHG = async function (emp) {
   const produtos = [{ codigo: "0661031" }];
 
@@ -65,6 +67,7 @@ const iniciar = async function () {
   } catch (error) {
     throw error;
   }
+
   await verficaCHG(emp);
 
   try {
@@ -82,16 +85,7 @@ const iniciar = async function () {
     }
   }
 
-   const produto = await blingSrv.getProdutoByCodigo(emp, "0661031");
-
-   const id_produto = produto?.id ? produto.id : 0;
-
-   console.log("ID Produto: ", id_produto);
-
-   const saldo = await blingSrv.getProdutoSimpleByIdsTamPage([16240167289], emp, 1, 10);
-
-    console.log("Saldo: ", saldo);
-
+   
   empresaSrv.AtivarEmpresas();
 };
 

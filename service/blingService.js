@@ -31,7 +31,8 @@ function getDataFullCHG() {
     const d = new Date();
     d.setDate(d.getDate() - 1); // dia anterior
     d.setHours(0, 0, 0, 0);     // 00:00:00
-    return d.toISOString();     // formato aceito pela CHG
+    lastDate = d.toISOString().substring(0, 10);
+    return lastDate;    // formato aceito pela CHG
 }
 
 
