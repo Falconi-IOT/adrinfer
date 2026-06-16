@@ -36,17 +36,18 @@ function getDataFullCHG() {
 function getNextChgDateRef(emp) {
     const nowBR = getBrazilDateTime();
     const today = nowBR.substring(0, 10);
+    const ontem = getDataFullCHG();
 
     // Nunca sincronizou → FULL LOAD
     if (!emp.chg_last_sync_datetime) {
-        return { mode: "FULL", dateref: `${today}T00:00:00` };
+        return { mode: "FULL", dateref: `${ontem}T00:00:00` };
     }
 
     const lastDay = emp.chg_last_sync_datetime.substring(0, 10);
 
     // Mudou o dia → FULL LOAD
     if (lastDay !== today) {
-        return { mode: "FULL", dateref: `${today}T00:00:00` };
+        return { mode: "FULL", dateref: `${ontem}T00:00:00` };
     }
 
     // Mesmo dia → INCREMENTAL
@@ -89,63 +90,48 @@ async function getChgFullList(emp, dateref) {
 
     return listaFinal;
 }
+
 exports.sincronizaCHG = async function (emp) {
-    console.log("SINCRONIZANDO CHG...");
 
-    // 1. Buscar última atualização no banco
-    const ultima = await chgSrv.getUltimaAtualizacao(emp.id);
+    console.log("=== INICIANDO SINCRONIZAÇÃO CHG ===");
 
-    let dataRef;
-    let tipoCarga;
+    // 1. FULL ou INCREMENTAL?
+    let { mode, dateref } = getNextChgDateRef(emp);
+    console.log("Modo:", mode, "dateref:", dateref);
 
-    if (!ultima) {
-        // FULL LOAD
-        tipoCarga = "FULL";
-        dataRef = getDataFullCHG();
+    // 2. Buscar lista da CHG
+    let lista = await getChgFullList(emp, dateref);
+
+    // 3. Incremental vazio → FULL LOAD obrigatório
+    if (mode === "INC" && lista.length === 0) {
+        console.log("Incremental vazio → FULL LOAD");
+
+        const today = getBrazilDateTime().substring(0, 10);
+        const fullDate = `${today}T00:00:00`;
+
+        lista = await getChgFullList(emp, fullDate);
+        mode = "FULL";
+    }
+
+    // 4. Persistir no banco
+    if (mode === "FULL") {
+        console.log("Salvando FULL LOAD CHG...");
+        await chgSrv.salvarListaCompleta(emp.id, lista);
     } else {
-        // INCREMENTAL
-        tipoCarga = "INC";
-        dataRef = ultima.atualizado_em.toISOString();
+        console.log("Aplicando INCREMENTAL CHG...");
+        for (const item of lista) {
+            await chgSrv.atualizarProduto(emp.id, item.codigo, item);
+        }
     }
 
-    console.log(`Tipo de carga: ${tipoCarga}`);
-    console.log(`DataRef enviada para CHG: ${dataRef}`);
+    // 5. Atualizar última sincronização
+    emp.chg_last_sync_datetime = getBrazilDateTime();
+    await empresaSrv.updateEmpresa(emp);
 
-    let pagina = 1;
-    let listaFinal = [];
+    console.log("CHG sincronizado com sucesso.");
 
-    while (true) {
-        const response = await axiosCHG.get("/produtos", {
-            params: {
-                dateref: dataRef,
-                page: pagina
-            }
-        });
-
-        const lista = response.data?.produtos ?? [];
-
-        if (lista.length === 0) break;
-
-        listaFinal.push(...lista);
-        pagina++;
-    }
-
-    console.log(`Total recebido da CHG: ${listaFinal.length}`);
-
-    // FULL → apaga tudo e salva tudo
-    if (tipoCarga === "FULL") {
-        await chgSrv.salvarListaCompleta(emp.id, listaFinal);
-    }
-
-    // INC → atualiza apenas alterados
-    if (tipoCarga === "INC") {
-        await chgSrv.salvarListaIncremental(emp.id, listaFinal);
-    }
-
-    // Atualiza data de sincronização
-    await chgSrv.atualizarData(emp.id, new Date());
-
-    console.log("CHG sincronizada com sucesso.");
+    // 6. Retornar lista atualizada
+    return lista;
 };
 
 
