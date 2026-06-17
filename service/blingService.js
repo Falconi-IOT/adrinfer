@@ -111,8 +111,8 @@ exports.sincronizaCHG = async function (emp) {
     if (mode === "INC" && lista.length === 0) {
         console.log("Incremental vazio → FULL LOAD");
 
-        const today = getBrazilDateTime().substring(0, 10);
-        const fullDate = `${today}T00:00:00`;
+        const ontem = getDataFullCHG();
+        const fullDate = `${ontem}T00:00:00`;
 
         lista = await getChgFullList(emp, fullDate);
         mode = "FULL";
