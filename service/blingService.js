@@ -198,9 +198,9 @@ exports.getToken = async function(emp) {
             "content-type": "application/x-www-form-urlencoded",
             Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
             Accept: "application/json",
+            "enable-jwt": 1   // ← agora está correto
         },
         data: qs.stringify(data),
-        httpsAgent: agent,
     };
 
     const retorno = await axios(options);
@@ -213,13 +213,15 @@ exports.getRefreshToken = async function(emp) {
         grant_type: "refresh_token",
         refresh_token: emp.refresh_token.trim(),
     };
+
     const options = {
         url: "https://api.bling.com.br/Api/v3/oauth/token",
         method: "POST",
         headers: {
             "content-type": "application/x-www-form-urlencoded",
             Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
-            Accept: "1.0",
+            Accept: "application/json",
+            "enable-jwt": 1   // ← obrigatório aqui também
         },
         data: qs.stringify(data),
     };
