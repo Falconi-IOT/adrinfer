@@ -198,7 +198,7 @@ exports.getToken = async function(emp) {
             "content-type": "application/x-www-form-urlencoded",
             Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
             Accept: "application/json",
-            "enable-jwt": 1   // ← agora está correto
+            "enable-jwt": 1  
         },
         data: qs.stringify(data),
     };
@@ -221,7 +221,7 @@ exports.getRefreshToken = async function(emp) {
             "content-type": "application/x-www-form-urlencoded",
             Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
             Accept: "application/json",
-            "enable-jwt": 1   // ← obrigatório aqui também
+            "enable-jwt": 1  
         },
         data: qs.stringify(data),
     };
@@ -244,6 +244,7 @@ exports.getProdutoFullById = async function(emp, id_produto) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
+             "enable-jwt": 1 
         },
     };
 
@@ -267,6 +268,7 @@ exports.getProdutoFullByCodigo = async function(id_produto) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
+             "enable-jwt": 1 
         },
     };
 
@@ -297,6 +299,7 @@ exports.getProdutoSimpleByIds = async function(id_produtos, emp, pagina) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
+            "enable-jwt": 1 
         },
     };
 
@@ -325,6 +328,7 @@ exports.postAjustaSaldo = async function(
                 headers: {
                     "content-type": "application/json",
                     Authorization: `Bearer ${emp.access_token.trim()}`,
+                    "enable-jwt": 1 
                 },
             },
         );
@@ -353,6 +357,7 @@ exports.getSaldos = async function(produtos, emp) {
                 headers: {
                     "content-type": "application/json",
                     Authorization: `Bearer ${emp.access_token.trim()}`,
+                    "enable-jwt": 1 
                 },
             }
         );
@@ -403,6 +408,7 @@ exports.getCategorias = async function(emp) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
+            "enable-jwt": 1 
         },
     };
 
@@ -423,6 +429,7 @@ exports.getDepositos = async function(emp) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
+            "enable-jwt": 1 
         },
     };
 
@@ -816,6 +823,7 @@ exports.getProdutoSimplesAllPages = async function(id_empresa) {
                 headers: {
                     "content-type": "application/json",
                     Authorization: `Bearer ${emp.access_token.trim()}`,
+                    "enable-jwt": 1 
                 },
             };
 
@@ -918,6 +926,7 @@ exports.getProdutoSimpleByIdsTamPage = async function(
         headers: {
             "content-type": "application/json",
             Authorization: "Bearer " + emp.access_token.trim(),
+            "enable-jwt": 1 
         },
     };
 
@@ -1008,7 +1017,11 @@ exports.getProdutoByCodigo = async function(emp, codigo) {
             "https://api.bling.com.br/Api/v3/produtos",
             {
                 params: params,
-                headers: { Authorization: "Bearer " + emp.access_token }
+                headers: {
+                            "content-type": "application/json",
+                            Authorization: "Bearer " + emp.access_token.trim(),
+                            "enable-jwt": 1 
+                         },
             }
         );
 

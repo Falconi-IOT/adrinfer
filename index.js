@@ -68,7 +68,7 @@ const iniciar = async function () {
     throw error;
   }
 
- /*  await verficaCHG(emp);
+ await verficaCHG(emp);
 
   try {
     await refreshToken(emp);
@@ -86,7 +86,7 @@ const iniciar = async function () {
   }
 
    
-  empresaSrv.AtivarEmpresas(); */
+  empresaSrv.AtivarEmpresas();
 };
 
 app.use(allowCors);
