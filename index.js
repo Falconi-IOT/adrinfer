@@ -51,11 +51,12 @@ const verficaCHG = async function (emp) {
 };
 
 const refreshToken = async function (emp) {
-  const validade = shared.ValidarToken(emp);
+  emp = await bling.getAtualizaToken(emp);
+  /* const validade = shared.ValidarToken(emp);
   console.log("validade: ", validade);
   if (validade.minutos_restantes <= 60) {
     emp = await bling.getAtualizaToken(emp);
-  }
+  }  */
   return;
 };
 
@@ -86,7 +87,7 @@ const iniciar = async function () {
   }
 
    
-  empresaSrv.AtivarEmpresas();
+ empresaSrv.AtivarEmpresas();
 };
 
 app.use(allowCors);

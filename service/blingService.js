@@ -184,7 +184,7 @@ const convertSegToHorario = (seconds) => {
 };
 
 
-exports.getToken = async function(emp) {
+/* exports.getToken = async function(emp) {
     const data = {
         grant_type: "authorization_code",
         code: emp.code,
@@ -206,9 +206,36 @@ exports.getToken = async function(emp) {
     const retorno = await axios(options);
     console.log("retorno getToken:", retorno.data);
     return retorno.data;
+}; */
+
+exports.getToken = async function(emp) {
+    const data = {
+        grant_type: "authorization_code",
+        code: emp.code,
+        redirect_uri: "http://localhost:3000/api/bling/recebercode/1",
+        client_id: emp.client_id,
+        client_secret: emp.client_secret
+    };
+
+    const options = {
+        url: "https://www.bling.com.br/Api/v3/oauth/token",
+        method: "POST",
+        headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
+            Accept: "application/json",
+            "enable-jwt": "1"   
+        },
+        data: qs.stringify(data),
+    };
+
+    const retorno = await axios(options);
+    console.log("retorno getToken:", retorno.data);
+    return retorno.data;
 };
 
-exports.getRefreshToken = async function(emp) {
+
+/* exports.getRefreshToken = async function(emp) {
     const data = {
         grant_type: "refresh_token",
         refresh_token: emp.refresh_token.trim(),
@@ -235,6 +262,37 @@ exports.getRefreshToken = async function(emp) {
         throw err;
     }
 };
+ */
+
+exports.getRefreshToken = async function(emp) {
+    const data = {
+        grant_type: "refresh_token",
+        refresh_token: emp.refresh_token.trim(),
+        client_id: emp.client_id,
+        client_secret: emp.client_secret
+    };
+
+    const options = {
+        url: "https://api.bling.com.br/Api/v3/oauth/token",
+        method: "POST",
+        headers: {
+            "content-type": "application/x-www-form-urlencoded",
+            Authorization: `Basic ${credentials.getCredentialsBase64(emp)}`,
+            Accept: "application/json",
+            "enable-jwt": "1"   
+        },
+        data: qs.stringify(data),
+    };
+
+    try {
+        const response = await axios(options);
+        const retorno = response.data;
+        console.log("retorno refreshcode", retorno);
+        return retorno;
+    } catch (err) {
+        throw err;
+    }
+};
 
 exports.getProdutoFullById = async function(emp, id_produto) {
     const options = {
@@ -244,7 +302,6 @@ exports.getProdutoFullById = async function(emp, id_produto) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
-             "enable-jwt": 1 
         },
     };
 
@@ -268,7 +325,6 @@ exports.getProdutoFullByCodigo = async function(id_produto) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
-             "enable-jwt": 1 
         },
     };
 
@@ -299,7 +355,6 @@ exports.getProdutoSimpleByIds = async function(id_produtos, emp, pagina) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
-            "enable-jwt": 1 
         },
     };
 
@@ -328,7 +383,6 @@ exports.postAjustaSaldo = async function(
                 headers: {
                     "content-type": "application/json",
                     Authorization: `Bearer ${emp.access_token.trim()}`,
-                    "enable-jwt": 1 
                 },
             },
         );
@@ -357,7 +411,6 @@ exports.getSaldos = async function(produtos, emp) {
                 headers: {
                     "content-type": "application/json",
                     Authorization: `Bearer ${emp.access_token.trim()}`,
-                    "enable-jwt": 1 
                 },
             }
         );
@@ -408,7 +461,6 @@ exports.getCategorias = async function(emp) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
-            "enable-jwt": 1 
         },
     };
 
@@ -429,7 +481,6 @@ exports.getDepositos = async function(emp) {
         headers: {
             "content-type": "application/json",
             Authorization: `Bearer ${emp.access_token.trim()}`,
-            "enable-jwt": 1 
         },
     };
 
@@ -823,7 +874,6 @@ exports.getProdutoSimplesAllPages = async function(id_empresa) {
                 headers: {
                     "content-type": "application/json",
                     Authorization: `Bearer ${emp.access_token.trim()}`,
-                    "enable-jwt": 1 
                 },
             };
 
@@ -926,7 +976,6 @@ exports.getProdutoSimpleByIdsTamPage = async function(
         headers: {
             "content-type": "application/json",
             Authorization: "Bearer " + emp.access_token.trim(),
-            "enable-jwt": 1 
         },
     };
 
@@ -1020,7 +1069,6 @@ exports.getProdutoByCodigo = async function(emp, codigo) {
                 headers: {
                             "content-type": "application/json",
                             Authorization: "Bearer " + emp.access_token.trim(),
-                            "enable-jwt": 1 
                          },
             }
         );
@@ -1034,3 +1082,32 @@ exports.getProdutoByCodigo = async function(emp, codigo) {
             throw err;
     }
 };
+
+
+exports.checkTokenBling  = async function () {
+    try {
+      // Endpoint leve que não consome muito
+       const resp = await axiosBling.get(
+            "https://api.bling.com.br/Api/v3//usuarios/me",
+            {
+                params: params,
+                headers: {
+                            "content-type": "application/json",
+                            Authorization: "Bearer " + emp.access_token.trim(),
+                         },
+            }
+        );
+
+      return {
+        valido: true,
+        mensagem: "Token ainda está ativo no Bling"
+      };
+
+    } catch (err) {
+      return {
+        valido: false,
+        mensagem: "Token expirado ou inválido no Bling",
+        detalhe: err.response?.data || err.message
+      };
+    }
+  }
