@@ -14,6 +14,36 @@ const qs = require("querystring");
 const pLimit = require("p-limit").default;
 const limitAjuste = pLimit(2); // 2 workers simultâneos
 
+
+// === AXIOS DEDICADO PARA A CHG ===
+const axiosCHG = axios.create({
+  httpsAgent: new https.Agent({
+    keepAlive: true,
+    keepAliveMsecs: 5000,
+    maxSockets: 5,        // evita overload
+    maxFreeSockets: 2,
+    rejectUnauthorized: false
+  }),
+  timeout: 15000
+});
+
+
+// === RETRY AUTOMÁTICO ===
+axiosRetry(axiosCHG, {
+    retries: 3,
+    retryDelay: (count) => count * 2000,
+    retryCondition: (error) => {
+        return (
+            error.code === "ECONNRESET" ||
+            error.code === "ETIMEDOUT" ||
+             error.code === "ECONNABORTED" ||
+            axiosRetry.isNetworkError(error) ||
+            axiosRetry.isRetryableError(error)
+        );
+    },
+});
+
+
 const iguais = (a, b) => Number(a) === Number(b);
 
 function getBrazilDateTime() {
@@ -69,7 +99,7 @@ async function getChgFullList(emp, dateref) {
         const url = `https://loja2.chg.com.br/api/catalogo/userest?key=${emp.key_chg}&filial=CPS&pagina=${pagina}&dateref=${dateref}&preco=1`;
         
         try {
-            const resp = await axios.get(url, { timeout: 30000 });
+            const resp = await axiosCHG.get(url, { timeout: 30000 });
 
             const lista = resp.data.data.resultado;
 
