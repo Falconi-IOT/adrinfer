@@ -50,8 +50,13 @@ exports.getProdutoByCodigo = async function(emp, codigo) {
         "&produto=" + codigo +
         "&filial=CPS";
 
+    console.log(url);    
+
     try {
         const response = await axiosCHG.get(url);
+
+        console.log("response",response);
+        
         const data = response.data;
 
         if (!data || !data.data) {
