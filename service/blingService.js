@@ -66,7 +66,7 @@ async function getChgFullList(emp, dateref) {
     let listaFinal = [];
 
     while (true) {
-        const url = `https://loja.chg.com.br/api/catalogo/userest?key=${emp.key_chg}&filial=CPS&pagina=${pagina}&dateref=${dateref}&preco=1`;
+        const url = `https://loja2.chg.com.br/api/catalogo/userest?key=${emp.key_chg}&filial=CPS&pagina=${pagina}&dateref=${dateref}&preco=1`;
         
         try {
             const resp = await axios.get(url, { timeout: 30000 });
