@@ -36,7 +36,7 @@ axiosRetry(axiosCHG, {
 });
 
 exports.getChgCatalogo = async function(emp, pagina) {
-    const url = `https://loja.chg.com.br/api/catalogo/produtos?key=${emp.key_chg}&filial=CPS&pagina=${pagina}`;
+    const url = `https://loja2.chg.com.br/api/catalogo/produtos?key=${emp.key_chg}&filial=CPS&pagina=${pagina}`;
     let response = await axiosCHG.get(url);
     return response.data.data;
 };
@@ -45,7 +45,7 @@ exports.getChgCatalogo = async function(emp, pagina) {
 // === FUNÇÃO REFEITA ===
 exports.getProdutoByCodigo = async function(emp, codigo) {
     const url =
-        "https://loja.chg.com.br/api/catalogo/produto" +
+        "https://loja2.chg.com.br/api/catalogo/produto" +
         "?key=" + emp.key_chg +
         "&produto=" + codigo +
         "&filial=CPS";
@@ -55,8 +55,6 @@ exports.getProdutoByCodigo = async function(emp, codigo) {
     try {
         const response = await axiosCHG.get(url);
 
-        console.log("response",response);
-        
         const data = response.data;
 
         if (!data || !data.data) {
